@@ -8,9 +8,6 @@ import cartRoutes from "./routes/cartRoutes.js";
 
 dotenv.config();
 connectDB();
-setInterval(() => {
-  fetch(`https://neonverse-game-store-production.up.railway.app/health`).catch(() => {});
-}, 14 * 60 * 1000);
 
 const app = express();
 app.use(cors());
@@ -21,15 +18,23 @@ app.use("/api/auth", authRoutes);
 app.use("/api/cart", cartRoutes);
 
 app.get("/", (req, res) => {
-  res.status(200).send("✅ Neonverse API Running - Backend Connected Successfully!")
+  res.status(200).send("✅ Neonverse API Running - Backend Connected Successfully!");
 });
 
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", uptime: process.uptime() });
 });
 
+// 🔥 Ganti bagian di bawah ini
 const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, () => {
+// 👇 Ini penting biar Railway gak stop container
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running and listening on port ${PORT}`);
+});
+
+// ✅ Tambahkan ini di paling bawah
+process.on("SIGTERM", () => {
+  console.log("🛑 Graceful shutdown initiated by Railway...");
+  process.exit(0);
 });
