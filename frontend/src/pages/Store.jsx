@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api";
 import { motion } from "framer-motion";
 
 export default function Store() {
@@ -9,7 +9,7 @@ export default function Store() {
   useEffect(() => {
     const fetchGames = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/games");
+        const res = await api.get("/api/games");
         setGames(res.data);
       } catch (err) {
         console.error("Error fetching games:", err);
@@ -33,7 +33,7 @@ export default function Store() {
     if (!token) return alert("You must be logged in!");
 
     try {
-      await axios.post(
+       await api.post(s
         "http://localhost:5000/api/cart/add",
         { gameId, quantity: 1 },
         { headers: { Authorization: `Bearer ${token}` } }

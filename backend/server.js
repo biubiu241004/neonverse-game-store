@@ -10,7 +10,19 @@ dotenv.config();
 connectDB();
 
 const app = express();
-app.use(cors());
+import cors from "cors";
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://neonverse-game-store.vercel.app" // nanti ganti kalau beda nama project Vercel
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true,
+}));
+
 app.use(express.json());
 
 app.use("/api/games", gameRoutes);

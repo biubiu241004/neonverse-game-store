@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api";
 
 export default function Cart() {
   const [cart, setCart] = useState([]);
@@ -9,7 +9,7 @@ export default function Cart() {
       const token = localStorage.getItem("token");
       if (!token) return;
       try {
-        const res = await axios.get("http://localhost:5000/api/cart", {
+        const res = await api.get("/api/cart", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCart(res.data.items || []);
@@ -23,7 +23,7 @@ export default function Cart() {
   const handleRemove = async (id) => {
     const token = localStorage.getItem("token");
     try {
-      await axios.delete(`http://localhost:5000/api/cart/${id}`, {
+      await api.delete(`/api/cart/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCart(cart.filter((item) => item.game._id !== id));

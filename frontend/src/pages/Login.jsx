@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../api";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
@@ -14,7 +14,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", form);
+      const res = await api.post("/api/auth/login", form);
       localStorage.setItem("token", res.data.token);
       setMessage("Login successful! Redirecting...");
       setTimeout(() => navigate("/store"), 1000);

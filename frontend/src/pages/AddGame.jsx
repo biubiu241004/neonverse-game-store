@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../api";
 
 export default function AddGame() {
   const [form, setForm] = useState({
@@ -22,7 +22,7 @@ export default function AddGame() {
     if (!token) return setMessage("You must be logged in as admin!");
 
     try {
-      await axios.post("http://localhost:5000/api/games", form, {
+      await api.post("/api/games", form, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMessage("Game added successfully!");
