@@ -1,10 +1,11 @@
 import { useState } from "react";
-import api from "../api";
+import api from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -13,19 +14,32 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setMessage("");
+
     try {
       const res = await api.post("/api/auth/login", form);
+
+      // ✅ Simpan token ke localStorage
       localStorage.setItem("token", res.data.token);
-      setMessage("Login successful! Redirecting...");
+
+      setMessage("✅ Login successful! Redirecting...");
       setTimeout(() => navigate("/store"), 1000);
     } catch (err) {
-      setMessage(err.response?.data?.message || "Login failed");
+      console.error("Login error:", err);
+      setMessage(
+        err.response?.data?.message ||
+          "❌ Login failed. Please check your email/password."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-darkBg text-white">
-      <h1 className="text-4xl text-neonGreen mb-6">Login</h1>
+      <h1 className="text-4xl text-neonGreen mb-6 font-orbitron">Login</h1>
+
       <form
         onSubmit={handleSubmit}
         className="bg-[#111] p-6 rounded-2xl w-[90%] max-w-md shadow-neon"
@@ -48,13 +62,20 @@ export default function Login() {
           className="w-full p-3 mb-4 rounded bg-darkBg border border-neonPurple outline-none"
           required
         />
+
         <button
           type="submit"
-          className="w-full py-3 bg-neonGreen text-darkBg font-bold rounded-lg hover:scale-105 transition-transform"
+          disabled={loading}
+          className={`w-full py-3 font-bold rounded-lg transition-transform ${
+            loading
+              ? "bg-gray-600 cursor-not-allowed"
+              : "bg-neonGreen text-darkBg hover:scale-105"
+          }`}
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
       </form>
+
       {message && <p className="mt-4 text-neonBlue">{message}</p>}
     </div>
   );

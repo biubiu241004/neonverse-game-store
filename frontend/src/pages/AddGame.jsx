@@ -1,5 +1,5 @@
 import { useState } from "react";
-import api from "../api";
+import api from "../services/api";
 
 export default function AddGame() {
   const [form, setForm] = useState({
@@ -19,13 +19,15 @@ export default function AddGame() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    if (!token) return setMessage("You must be logged in as admin!");
+    if (!token) return setMessage("⚠️ You must be logged in as admin!");
 
     try {
+      // 🚀 POST request ke backend Railway atau localhost otomatis
       await api.post("/api/games", form, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setMessage("Game added successfully!");
+
+      setMessage("✅ Game added successfully!");
       setForm({
         title: "",
         price: "",
@@ -35,7 +37,8 @@ export default function AddGame() {
         description: "",
       });
     } catch (err) {
-      setMessage(err.response?.data?.message || "Failed to add game");
+      console.error("Error adding game:", err);
+      setMessage(err.response?.data?.message || "❌ Failed to add game");
     }
   };
 
@@ -49,18 +52,24 @@ export default function AddGame() {
         onSubmit={handleSubmit}
         className="bg-[#111] p-8 rounded-2xl w-full max-w-lg shadow-neon"
       >
-        {["title", "price", "stock", "rating", "image", "description"].map((field) => (
-          <input
-            key={field}
-            type={field === "price" || field === "stock" || field === "rating" ? "number" : "text"}
-            name={field}
-            placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-            value={form[field]}
-            onChange={handleChange}
-            className="w-full p-3 mb-4 rounded bg-darkBg border border-neonPurple outline-none"
-            required
-          />
-        ))}
+        {["title", "price", "stock", "rating", "image", "description"].map(
+          (field) => (
+            <input
+              key={field}
+              type={
+                field === "price" || field === "stock" || field === "rating"
+                  ? "number"
+                  : "text"
+              }
+              name={field}
+              placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+              value={form[field]}
+              onChange={handleChange}
+              className="w-full p-3 mb-4 rounded bg-darkBg border border-neonPurple outline-none"
+              required
+            />
+          )
+        )}
 
         <button
           type="submit"

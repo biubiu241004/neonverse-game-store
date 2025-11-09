@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import api from "../api";
+import api from "../services/api";
 import { motion } from "framer-motion";
 
 export default function Store() {
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchGames = async () => {
@@ -13,6 +14,7 @@ export default function Store() {
         setGames(res.data);
       } catch (err) {
         console.error("Error fetching games:", err);
+        setError("❌ Failed to load games. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -20,38 +22,63 @@ export default function Store() {
     fetchGames();
   }, []);
 
+  const handleAddToCart = async (gameId) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("⚠️ You must be logged in to add items to cart.");
+      return;
+    }
+
+    try {
+      const res = await api.post(
+        "/api/cart/add",
+        { gameId, quantity: 1 },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (res.status === 200) {
+        alert("✅ Game added to cart!");
+      } else {
+        alert("⚠️ Something went wrong, please try again.");
+      }
+    } catch (err) {
+      console.error("Add to cart error:", err);
+      if (err.response?.status === 401) {
+        alert("❌ Session expired. Please log in again.");
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      } else {
+        alert("❌ Failed to add game to cart. Try again later.");
+      }
+    }
+  };
+
   if (loading) {
     return (
-      <div className="text-center mt-20 text-neonBlue text-xl">
-        Loading games...
+      <div className="text-center mt-20 text-neonBlue text-xl animate-pulse">
+        ⚡ Loading games...
       </div>
     );
   }
 
-  const handleAddToCart = async (gameId) => {
-    const token = localStorage.getItem("token");
-    if (!token) return alert("You must be logged in!");
-
-    try {
-       await api.post(s
-        "http://localhost:5000/api/cart/add",
-        { gameId, quantity: 1 },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      alert("Game added to cart!");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to add to cart");
-    }
-  };
+  if (error) {
+    return (
+      <div className="text-center mt-20 text-red-400 text-lg">
+        {error}
+      </div>
+    );
+  }
 
   return (
     <div className="p-10 min-h-screen bg-darkBg text-white">
       <h1 className="text-4xl text-neonBlue font-orbitron mb-8 text-center">
         ⚡ Game Store ⚡
       </h1>
+
       {games.length === 0 ? (
-        <p className="text-center text-gray-400">No games available yet.</p>
+        <p className="text-center text-gray-400">
+          No games available yet.
+        </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {games.map((game) => (

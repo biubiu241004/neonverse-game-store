@@ -1,20 +1,30 @@
 import { useEffect, useState } from "react";
-import api from "../api";
+import api from "../services/api";
 
 export default function Cart() {
   const [cart, setCart] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchCart = async () => {
       const token = localStorage.getItem("token");
-      if (!token) return;
+      if (!token) {
+        setError("⚠️ You must be logged in to view your cart.");
+        setLoading(false);
+        return;
+      }
+
       try {
         const res = await api.get("/api/cart", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCart(res.data.items || []);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching cart:", err);
+        setError("❌ Failed to load cart. Please try again later.");
+      } finally {
+        setLoading(false);
       }
     };
     fetchCart();
@@ -22,23 +32,43 @@ export default function Cart() {
 
   const handleRemove = async (id) => {
     const token = localStorage.getItem("token");
+    if (!token) return alert("⚠️ You must be logged in!");
+
     try {
       await api.delete(`/api/cart/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCart(cart.filter((item) => item.game._id !== id));
     } catch (err) {
-      console.error(err);
+      console.error("Error removing item:", err);
+      alert("❌ Failed to remove item. Please try again.");
     }
   };
+
+  if (loading) {
+    return (
+      <div className="text-center mt-20 text-neonBlue text-xl">
+        Loading your cart...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center mt-20 text-red-400 text-lg">
+        {error}
+      </div>
+    );
+  }
 
   return (
     <div className="p-10 min-h-screen bg-darkBg text-white">
       <h1 className="text-4xl text-neonPink mb-8 text-center font-orbitron">
         🛒 Your Cart
       </h1>
+
       {cart.length === 0 ? (
-        <p className="text-center text-gray-400">Your cart is empty</p>
+        <p className="text-center text-gray-400">Your cart is empty.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {cart.map(({ game, quantity }) => (
