@@ -8,6 +8,9 @@ import cartRoutes from "./routes/cartRoutes.js";
 
 dotenv.config();
 connectDB();
+setInterval(() => {
+  fetch(`https://neonverse-game-store-production.up.railway.app/health`).catch(() => {});
+}, 14 * 60 * 1000);
 
 const app = express();
 app.use(cors());
@@ -26,6 +29,7 @@ app.get("/health", (req, res) => {
 });
 
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running and listening on port ${PORT}`);
 });
