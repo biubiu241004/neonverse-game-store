@@ -18,11 +18,14 @@ app.use("/api/auth", authRoutes);
 app.use("/api/cart", cartRoutes);
 
 app.get("/", (req, res) => {
-  res.send("API Running...");
+  res.status(200).send("✅ Neonverse API Running - Backend Connected Successfully!")
+});
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", uptime: process.uptime() });
 });
 
 const PORT = process.env.PORT || 8080;
-console.log("Starting Express server...");
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
