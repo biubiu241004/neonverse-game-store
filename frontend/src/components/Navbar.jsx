@@ -65,6 +65,17 @@ export default function Navbar() {
         >
           <LogIn size={18} /> Login
         </Link>
+
+        <Link
+          to="/register"
+          className={`flex items-center gap-1 transition-colors duration-200 ${
+            location.pathname === "/register"
+              ? "text-purple-400"
+              : "text-white hover:text-purple-400"
+          }`}
+        >
+          <UserPlus size={18} /> Register
+        </Link>
       </div>
     </motion.nav>
   );
