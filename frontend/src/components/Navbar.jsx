@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { ShoppingCart, LogIn, Gamepad2 } from "lucide-react";
+import { ShoppingCart, LogIn, Gamepad2, UserPlus, } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Navbar() {

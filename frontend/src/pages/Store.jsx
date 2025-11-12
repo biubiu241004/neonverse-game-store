@@ -10,6 +10,7 @@ export default function Store() {
   useEffect(() => {
     const fetchGames = async () => {
       try {
+        console.log("Fetching from:", api.defaults.baseURL);
         const res = await api.get("/api/games");
         setGames(res.data);
       } catch (err) {
