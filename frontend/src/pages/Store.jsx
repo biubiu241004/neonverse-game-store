@@ -64,9 +64,7 @@ export default function Store() {
 
   if (error) {
     return (
-      <div className="text-center mt-20 text-red-400 text-lg">
-        {error}
-      </div>
+      <div className="text-center mt-20 text-red-400 text-lg">{error}</div>
     );
   }
 
@@ -77,9 +75,7 @@ export default function Store() {
       </h1>
 
       {games.length === 0 ? (
-        <p className="text-center text-gray-400">
-          No games available yet.
-        </p>
+        <p className="text-center text-gray-400">No games available yet.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {games.map((game) => (
@@ -95,12 +91,18 @@ export default function Store() {
             >
               <img
                 src={
-                  game.image ||
-                  "https://via.placeholder.com/300x200?text=No+Image"
+                  game.image?.startsWith("http")
+                    ? game.image // kalau dari Cloudinary/external
+                    : `http://localhost:8080${game.image}` // ambil dari backend local
                 }
+                onError={(e) => {
+                  e.target.src =
+                    "https://via.placeholder.com/300x200?text=No+Image";
+                }}
                 alt={game.title}
                 className="rounded-lg mb-4 w-full h-48 object-cover"
               />
+
               <h2 className="text-neonPink text-2xl font-bold">{game.title}</h2>
               <p className="text-gray-300 mt-2 text-sm line-clamp-2">
                 {game.description || "No description available."}

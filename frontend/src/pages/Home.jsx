@@ -51,7 +51,7 @@ export default function Home() {
         transition={{ delay: 1.5, duration: 1 }}
         className="mt-16 text-sm text-gray-500"
       >
-        💡 “Mainkan imajinasi, jadilah legenda — hanya di <span className='text-neonGreen font-semibold'>ValdoVerse</span>!”
+        💡 “Mulailah Menjelajah dan Berbelanja Disini, jadilah legenda — hanya di <span className='text-neonGreen font-semibold'>ValdoVerse</span>!”
       </motion.p>
     </div>
   );

@@ -9,6 +9,12 @@ const gameSchema = new mongoose.Schema({
   image: { type: String },
   description: { type: String },
   owner: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // admin pemilik
+
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  }
 }, { timestamps: true });
 
 const Game = mongoose.model("Game", gameSchema);

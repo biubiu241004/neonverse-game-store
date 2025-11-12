@@ -1,31 +1,51 @@
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
+// 🧩 Ubah generateToken biar menyertakan role & username
+const generateToken = (user) => {
+  return jwt.sign(
+    {
+      id: user._id,
+      username: user.username,
+      role: user.role,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "30d" }
+  );
 };
 
+// ✅ Register user baru
 export const registerUser = async (req, res) => {
   const { username, email, password, role } = req.body;
+
   try {
     const userExists = await User.findOne({ email });
-    if (userExists) return res.status(400).json({ message: "Email already used" });
+    if (userExists)
+      return res.status(400).json({ message: "Email sudah digunakan" });
 
-    const user = await User.create({ username, email, password, role });
+    const user = await User.create({
+      username,
+      email,
+      password,
+      role: role || "user", // default user kalau tidak dikirim
+    });
+
     res.status(201).json({
       _id: user._id,
       username: user.username,
       email: user.email,
       role: user.role,
-      token: generateToken(user._id),
+      token: generateToken(user),
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
+// ✅ Login user
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
+
   try {
     const user = await User.findOne({ email });
     if (user && (await user.matchPassword(password))) {
@@ -34,10 +54,10 @@ export const loginUser = async (req, res) => {
         username: user.username,
         email: user.email,
         role: user.role,
-        token: generateToken(user._id),
+        token: generateToken(user),
       });
     } else {
-      res.status(401).json({ message: "Invalid email or password" });
+      res.status(401).json({ message: "Email atau password salah" });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AddGame from "./pages/AddGame";
 import Cart from "./pages/Cart";
+import AdminDashboard from "./pages/AdminDashboard";
 // import NeonBackground from "./components/NeonBackground";
 
 export default function App() {
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/add-game" element={<AddGame />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
           </Routes>
         </motion.div>
       </AnimatePresence>

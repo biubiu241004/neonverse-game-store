@@ -1,25 +1,58 @@
 import Game from "../models/Game.js";
 
 // GET all games
-export const getGames = async (req, res) => {
+export const getAllGames = async (req, res) => {
   try {
     const games = await Game.find();
     res.json(games);
   } catch (err) {
+    console.error(error);
     res.status(500).json({ message: err.message });
   }
 };
 
 // POST new game
-export const createGame = async (req, res) => {
+export const addGame = async (req, res) => {
   try {
-    const game = new Game({
-      ...req.body,
-      owner: req.user._id, // simpan admin yang buat
+    const { title, description, price, image, stock, rating } = req.body;
+
+    const newGame = new Game({
+      title,
+      description,
+      price,
+      image,
+      stock,
+      rating,
+      createdBy: req.user._id, // 🆕 Admin pembuat
     });
-    const savedGame = await game.save();
+
+    const savedGame = await newGame.save();
     res.status(201).json(savedGame);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Gagal menambahkan game" });
+  }
+};
+
+export const deleteGameById = async (req, res) => {
+  try {
+    const game = await Game.findById(req.params.id);
+
+    if (!game) {
+      return res.status(404).json({ message: "Game tidak ditemukan" });
+    }
+
+    // 🧠 Cek apakah admin yang hapus adalah pembuatnya
+    if (game.createdBy.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Tidak bisa menghapus game milik admin lain" });
+    }
+
+    await game.deleteOne();
+    res.json({ message: "Game berhasil dihapus" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Gagal menghapus game" });
   }
 };

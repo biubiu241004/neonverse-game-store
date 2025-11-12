@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ShoppingCart, LogIn, LogOut, Gamepad2, UserPlus } from "lucide-react";
+import { ShoppingCart, LogIn, LogOut, Gamepad2, UserPlus, LayoutDashboard } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
@@ -9,6 +9,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState("");
+  const [role, setRole] = useState(""); // 🧩 Pastikan variabel ini ada
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -16,6 +17,7 @@ export default function Navbar() {
       try {
         const decoded = jwtDecode(token);
         setUsername(decoded.username || decoded.name || "User");
+        setRole(decoded.role || "user"); // 🧩 tambahkan baris ini
         setIsLoggedIn(true);
       } catch (err) {
         console.error("Invalid token:", err);
@@ -25,6 +27,7 @@ export default function Navbar() {
     } else {
       setIsLoggedIn(false);
       setUsername("");
+      setRole("");
     }
   }, [location]);
 
@@ -32,13 +35,14 @@ export default function Navbar() {
     localStorage.removeItem("token");
     setIsLoggedIn(false);
     setUsername("");
+    setRole("");
     navigate("/login");
   };
 
   return (
     <motion.nav
       initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }} // ✅ no looping animation here
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       className="flex justify-between items-center px-10 py-4 bg-[#0a0a10]/95 backdrop-blur-md border-b border-neonPurple shadow-[0_0_15px_rgba(139,92,246,0.6)] fixed top-0 left-0 w-full z-50"
     >
@@ -52,7 +56,6 @@ export default function Navbar() {
 
       {/* Menu kanan */}
       <div className="flex gap-8 text-lg font-orbitron items-center">
-        {/* Semua tombol punya efek glowing halus */}
         {["/", "/store", "/cart"].map((path, i) => {
           const labels = ["Home", "Store", "Cart"];
           const icons = [null, null, <ShoppingCart size={18} key={i} />];
@@ -80,7 +83,28 @@ export default function Navbar() {
           );
         })}
 
-        {/* Jika belum login */}
+        {/* 🧩 Tambahkan ini: tombol Dashboard muncul hanya untuk admin */}
+        {isLoggedIn && role === "admin" && (
+          <motion.div
+            whileHover={{
+              scale: 1.1,
+              textShadow: "0 0 12px #FFA500",
+            }}
+          >
+            <Link
+              to="/admin/dashboard"
+              className={`flex items-center gap-1 transition-colors duration-200 ${
+                location.pathname === "/admin/dashboard"
+                  ? "text-orange-400"
+                  : "text-white hover:text-orange-400"
+              }`}
+            >
+              <LayoutDashboard size={18} /> Dashboard
+            </Link>
+          </motion.div>
+        )}
+        {/* 🧩 Selesai bagian dashboard */}
+
         {!isLoggedIn ? (
           <>
             <motion.div
@@ -121,7 +145,6 @@ export default function Navbar() {
           </>
         ) : (
           <>
-            {/* Sapaan user */}
             <span className="text-neonGreen font-semibold">
               👋 Halo, {username}
             </span>
