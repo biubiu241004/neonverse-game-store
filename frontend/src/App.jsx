@@ -13,7 +13,7 @@ export default function App() {
   const location = useLocation();
 
   return (
-    <div className="bg-darkBg min-h-screen text-white font-orbitron overflow-hidden relative">
+    <div className="bg-darkBg min-h-screen text-white font-orbitron overflow-hidden relative pt-20">
       {/* <NeonBackground /> */}
       <Navbar />
       <AnimatePresence mode="wait">
