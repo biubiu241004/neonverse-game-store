@@ -1,44 +1,31 @@
 import express from "express";
 import multer from "multer";
-import path from "path";
 import cloudinary from "../config/cloudinary.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// 🗂️ Tentukan folder penyimpanan
-const storage = multer.diskStorage({
-  destination(req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename(req, file, cb) {
-    cb(null, `${Date.now()}${path.extname(file.originalname)}`);
-  },
-});
+// 🔥 Gunakan memoryStorage agar Railway tidak hapus file
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
-// 🧩 Filter hanya gambar
-const fileFilter = (req, file, cb) => {
-  if (
-    file.mimetype === "image/jpeg" ||
-    file.mimetype === "image/png" ||
-    file.mimetype === "image/webp"
-  ) {
-    cb(null, true);
-  } else {
-    cb(new Error("Format file tidak didukung!"), false);
-  }
-};
-
-const upload = multer({ storage, fileFilter });
-
-// 📸 Route upload
-router.post("/", upload.single("image"), async (req, res) => {
+// 📸 Upload langsung ke Cloudinary
+router.post("/", protect, upload.single("image"), async (req, res) => {
   try {
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "valdo_store"
+    if (!req.file) {
+      return res.status(400).json({ message: "Tidak ada file yang diupload" });
+    }
+
+    const fileBase64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+
+    const result = await cloudinary.uploader.upload(fileBase64, {
+      folder: "valdo_store",
     });
 
-    res.json({ imageUrl: result.secure_url });
+    return res.json({ imageUrl: result.secure_url });
+    
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Upload gagal", error: err.message });
   }
 });
