@@ -92,13 +92,7 @@ export default function Cart() {
               className="bg-[#111] rounded-2xl p-4 shadow-neon border border-neonPurple"
             >
               <img
-                src={
-                  game.image?.startsWith("http")
-                    ? game.image
-                    : game.image
-                    ? `http://localhost:8080${game.image}`
-                    : "https://placehold.co/300x200?text=No+Image"
-                }
+                src={game.image}
                 onError={(e) => {
                   e.target.src = "https://placehold.co/300x200?text=No+Image";
                 }}

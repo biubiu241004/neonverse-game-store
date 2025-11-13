@@ -108,13 +108,7 @@ export default function Store() {
               className="bg-[#111] rounded-2xl p-4 border border-neonPurple text-center hover:border-neonPink transform-gpu"
             >
               <img
-                src={
-                  game.image?.startsWith("http")
-                    ? game.image // kalau URL full
-                    : game.image
-                    ? `http://localhost:8080${game.image}` // dari backend local
-                    : "https://placehold.co/300x200?text=No+Image" // default image
-                }
+                src={game.image}
                 onError={(e) => {
                   e.target.src = "https://placehold.co/300x200?text=No+Image";
                 }}
