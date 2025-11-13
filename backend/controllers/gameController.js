@@ -34,6 +34,34 @@ export const addGame = async (req, res) => {
   }
 };
 
+export const updateGame = async (req, res) => {
+  try {
+    const game = await Game.findById(req.params.id);
+
+    if (!game) {
+      return res.status(404).json({ message: "Game tidak ditemukan" });
+    }
+
+    // hanya admin pemilik game yang boleh edit
+    if (game.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Tidak punya akses edit game ini" });
+    }
+
+    game.title = req.body.title || game.title;
+    game.description = req.body.description || game.description;
+    game.price = req.body.price || game.price;
+    game.stock = req.body.stock || game.stock;
+    game.rating = req.body.rating || game.rating;
+    game.image = req.body.image || game.image;
+
+    const updatedGame = await game.save();
+
+    res.json(updatedGame);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const deleteGameById = async (req, res) => {
   try {
     const game = await Game.findById(req.params.id);

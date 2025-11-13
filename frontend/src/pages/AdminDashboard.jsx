@@ -12,39 +12,43 @@ export default function AdminDashboard() {
     image: "",
   });
   const [uploading, setUploading] = useState(false);
+  const [editingId, setEditingId] = useState(null); // <-- MODE EDIT
   const token = localStorage.getItem("token");
 
+  // ============================
+  // GET GAME MILIK ADMIN
+  // ============================
   const fetchGames = async () => {
     try {
       const res = await api.get("/api/games");
       const decoded = JSON.parse(atob(token.split(".")[1]));
       const adminId = decoded.id;
-      const myGames = res.data.filter((game) => game.createdBy === adminId);
+
+      const myGames = res.data.filter((g) => g.createdBy === adminId);
       setGames(myGames);
     } catch (error) {
       console.error("Gagal memuat game:", error);
     }
   };
 
+  // ============================
+  // UPLOAD GAMBAR
+  // ============================
   const uploadImageHandler = async (e) => {
     const file = e.target.files[0];
     const formData = new FormData();
     formData.append("image", file);
 
-    // 🧩 preview langsung sebelum upload
-    const localPreview = URL.createObjectURL(file);
-    setForm({ ...form, image: localPreview });
+    // Preview langsung
+    setForm({ ...form, image: URL.createObjectURL(file) });
 
     try {
       setUploading(true);
       const res = await api.post("/api/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      // kalau upload sukses → ganti URL local dengan URL dari server
-      setForm({ ...form, image: res.data.imageUrl });
+      setForm((prev) => ({ ...prev, image: res.data.imageUrl }));
     } catch (error) {
       console.error("Gagal upload gambar:", error);
       alert("❌ Upload gambar gagal");
@@ -53,13 +57,31 @@ export default function AdminDashboard() {
     }
   };
 
-  const addGame = async (e) => {
+  // ==========================================
+  // HANDLE SUBMIT → TAMBAH atau EDIT
+  // ==========================================
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      await api.post("/api/games/add", form, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      if (editingId) {
+        // MODE EDIT
+        await api.put(`/api/games/${editingId}`, form, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        alert("Game berhasil diperbarui!");
+      } else {
+        // MODE TAMBAH
+        await api.post("/api/games/add", form, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        alert("Game berhasil ditambahkan!");
+      }
+
+      // Refresh
       fetchGames();
+
+      // Reset form
       setForm({
         title: "",
         description: "",
@@ -68,8 +90,25 @@ export default function AdminDashboard() {
         rating: "",
         image: "",
       });
+
+      setEditingId(null);
     } catch (error) {
-      alert("❌ Gagal menambahkan game");
+      console.error(error);
+      alert("❌ Gagal menyimpan game");
+    }
+  };
+
+  // ============================
+  // DELETE GAME
+  // ============================
+  const deleteGame = async (id) => {
+    try {
+      await api.delete(`/api/games/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchGames();
+    } catch (error) {
+      alert("❌ Tidak bisa hapus game");
     }
   };
 
@@ -83,10 +122,17 @@ export default function AdminDashboard() {
         Dashboard Admin 🎮
       </h1>
 
+      {/* ============================
+          FORM INPUT 
+      ============================ */}
       <form
-        onSubmit={addGame}
+        onSubmit={handleSubmit}
         className="mb-10 bg-[#111] p-6 rounded-xl shadow-[0_0_20px_rgba(139,92,246,0.5)] max-w-lg"
       >
+        <h2 className="text-xl font-bold text-neonBlue mb-4">
+          {editingId ? "Edit Game" : "Tambah Game Baru"}
+        </h2>
+
         <input
           type="text"
           placeholder="Nama Game"
@@ -124,8 +170,8 @@ export default function AdminDashboard() {
         <input
           type="number"
           step="0.1"
-          max="5"
           placeholder="Rating (0-5)"
+          max="5"
           value={form.rating}
           onChange={(e) => setForm({ ...form, rating: e.target.value })}
           className="w-full p-3 mb-3 bg-darkBg border border-neonPurple rounded"
@@ -137,11 +183,14 @@ export default function AdminDashboard() {
           onChange={uploadImageHandler}
           className="w-full p-3 mb-3 bg-darkBg border border-neonPurple rounded"
         />
-        {uploading && <p className="text-gray-400">📤 Mengupload gambar...</p>}
 
         {form.image && (
           <img
-            src={form.image}
+            src={
+              form.image.startsWith("/uploads")
+                ? `http://localhost:8080${form.image}`
+                : form.image
+            }
             alt="Preview"
             className="w-full h-48 object-cover rounded mb-3 border border-neonPurple"
           />
@@ -151,10 +200,13 @@ export default function AdminDashboard() {
           type="submit"
           className="w-full py-3 mt-3 bg-gradient-to-r from-neonPink to-neonPurple text-darkBg font-bold rounded-lg hover:scale-105 transition-transform"
         >
-          Tambahkan Game
+          {editingId ? "Simpan Perubahan" : "Tambahkan Game"}
         </button>
       </form>
 
+      {/* ============================
+          LIST GAME 
+      ============================ */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {games.map((game) => (
           <div
@@ -164,22 +216,36 @@ export default function AdminDashboard() {
             <img
               src={
                 game.image?.startsWith("http")
-                  ? game.image // kalau dari Cloudinary/external
-                  : `http://localhost:8080${game.image}` // ambil dari backend local
+                  ? game.image
+                  : `http://localhost:8080${game.image}`
               }
-              onError={(e) => {
-                e.target.src =
-                  "https://via.placeholder.com/300x200?text=No+Image";
-              }}
-              alt={game.title}
               className="rounded-lg mb-4 w-full h-48 object-cover"
             />
-
             <h3 className="text-neonPink text-xl font-bold">{game.title}</h3>
-            <p className="text-gray-400 text-sm">{game.description}</p>
-            <p className="text-neonGreen mt-2 font-semibold">
-              Rp {Number(game.price).toLocaleString("id-ID")}
-            </p>
+
+            <button
+              onClick={() => {
+                setEditingId(game._id);
+                setForm({
+                  title: game.title,
+                  description: game.description,
+                  price: game.price,
+                  stock: game.stock,
+                  rating: game.rating,
+                  image: game.image,
+                });
+              }}
+              className="text-yellow-400 hover:text-yellow-300 transition mr-3"
+            >
+              Edit
+            </button>
+
+            <button
+              onClick={() => deleteGame(game._id)}
+              className="text-red-400 hover:text-red-600 transition"
+            >
+              Hapus
+            </button>
           </div>
         ))}
       </div>
