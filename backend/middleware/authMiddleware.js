@@ -11,16 +11,14 @@ export const protect = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.id).select("-password");
 
-      next();
+      return next();
     } catch (error) {
       console.error(error);
       res.status(401).json({ message: "Token invalid or expired" });
     }
   }
 
-  if (!token) {
-    res.status(401).json({ message: "No token, authorization denied" });
-  }
+  return res.status(401).json({ message: "No token, authorization denied" });
 };
 
 export const adminOnly = (req, res, next) => {
@@ -30,3 +28,5 @@ export const adminOnly = (req, res, next) => {
     res.status(403).json({ message: "Access denied, admin only" });
   }
 };
+
+export default protect;

@@ -30,6 +30,29 @@ export default function Cart() {
     fetchCart();
   }, []);
 
+  // FIX CHECKOUT
+  const handleCheckout = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const formattedItems = cart.map((item) => ({
+        gameId: item.game._id,
+        quantity: item.quantity,
+      }));
+
+      const res = await api.post(
+        "/api/orders/checkout",
+        { items: formattedItems },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      alert("Checkout berhasil!");
+      setCart([]); 
+    } catch (error) {
+      alert(error.response?.data?.message || "Checkout gagal");
+    }
+  };
+
   const handleRemove = async (id) => {
     const token = localStorage.getItem("token");
     if (!token) return alert("⚠️ You must be logged in!");
@@ -46,19 +69,11 @@ export default function Cart() {
   };
 
   if (loading) {
-    return (
-      <div className="text-center mt-20 text-neonBlue text-xl">
-        Loading your cart...
-      </div>
-    );
+    return <div className="text-center mt-20 text-neonBlue text-xl">Loading your cart...</div>;
   }
 
   if (error) {
-    return (
-      <div className="text-center mt-20 text-red-400 text-lg">
-        {error}
-      </div>
-    );
+    return <div className="text-center mt-20 text-red-400 text-lg">{error}</div>;
   }
 
   return (
@@ -77,20 +92,38 @@ export default function Cart() {
               className="bg-[#111] rounded-2xl p-4 shadow-neon border border-neonPurple"
             >
               <img
-                src={game.image}
+                src={
+                  game.image?.startsWith("http")
+                    ? game.image
+                    : game.image
+                    ? `http://localhost:8080${game.image}`
+                    : "https://placehold.co/300x200?text=No+Image"
+                }
+                onError={(e) => {
+                  e.target.src = "https://placehold.co/300x200?text=No+Image";
+                }}
                 alt={game.title}
-                className="rounded-lg mb-3 w-full h-48 object-cover"
+                className="rounded-lg mb-4 w-full h-48 object-cover"
               />
+
               <h2 className="text-neonGreen text-2xl font-bold">{game.title}</h2>
               <p className="text-gray-400 mt-2">Qty: {quantity}</p>
               <p className="text-neonBlue mt-2 font-semibold">
                 Rp {game.price?.toLocaleString("id-ID")}
               </p>
+
               <button
                 onClick={() => handleRemove(game._id)}
                 className="mt-4 w-full py-2 bg-neonPink text-darkBg font-bold rounded-lg hover:scale-105 transition-transform"
               >
                 Remove
+              </button>
+
+              <button
+                onClick={handleCheckout}
+                className="mt-5 bg-neonPink px-6 py-3 rounded-lg text-darkBg font-bold hover:scale-105"
+              >
+                Checkout
               </button>
             </div>
           ))}

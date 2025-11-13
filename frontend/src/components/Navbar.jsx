@@ -1,15 +1,25 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ShoppingCart, LogIn, LogOut, Gamepad2, UserPlus, LayoutDashboard } from "lucide-react";
+import {
+  ShoppingCart,
+  LogIn,
+  LogOut,
+  Gamepad2,
+  UserPlus,
+  LayoutDashboard,
+} from "lucide-react";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { jwtDecode } from "jwt-decode";
+import { Sun, Moon } from "lucide-react";
+import { ThemeContext } from "../context/ThemeContext";
 
 export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState("");
-  const [role, setRole] = useState(""); // 🧩 Pastikan variabel ini ada
+  const [role, setRole] = useState("");
+  const { theme, toggleTheme } = useContext(ThemeContext);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -162,6 +172,15 @@ export default function Navbar() {
             </motion.button>
           </>
         )}
+
+        <motion.button
+          whileHover={{ scale: 1.2 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={toggleTheme}
+          className="text-white mx-3"
+        >
+          {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+        </motion.button>
       </div>
     </motion.nav>
   );

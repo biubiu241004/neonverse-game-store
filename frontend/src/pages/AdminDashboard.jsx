@@ -14,6 +14,7 @@ export default function AdminDashboard() {
   const [uploading, setUploading] = useState(false);
   const [editingId, setEditingId] = useState(null); // <-- MODE EDIT
   const token = localStorage.getItem("token");
+  const decoded = JSON.parse(atob(token.split(".")[1]));
 
   // ============================
   // GET GAME MILIK ADMIN
@@ -72,16 +73,21 @@ export default function AdminDashboard() {
         alert("Game berhasil diperbarui!");
       } else {
         // MODE TAMBAH
-        await api.post("/api/games/add", form, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.post(
+          "/api/games/add",
+          {
+            ...form,
+            createdBy: decoded.id, // 🔥 INI YANG WAJIB ADA
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         alert("Game berhasil ditambahkan!");
       }
 
-      // Refresh
       fetchGames();
 
-      // Reset form
       setForm({
         title: "",
         description: "",

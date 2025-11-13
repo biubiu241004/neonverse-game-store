@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-darkBg text-white text-center px-6">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white dark:bg-darkBg text-black dark:text-white text-center px-6 transition-colors duration-300"
+    >
       <motion.h1
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -18,11 +19,11 @@ export default function Home() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.3 }}
         transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
-        className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-neonPurple to-neonBlue blur-3xl opacity-20 -z-10"
+        className="absolute top-0 left-0 w-full h-full dark:bg-gradient-to-r dark:from-neonPurple dark:to-neonBlue dark:blur-3xl dark:opacity-20 -z-10"
       >
-        Dunia game penuh warna milik Valdo! ⚡  
-        Temukan game seru, kumpulkan koleksi terbaikmu, dan rasakan pengalaman
-        bermain dalam nuansa neon yang futuristik.
+        Dunia game penuh warna milik Valdo! ⚡ Temukan game seru, kumpulkan
+        koleksi terbaikmu, dan rasakan pengalaman bermain dalam nuansa neon yang
+        futuristik.
       </motion.p>
 
       <motion.div
@@ -51,7 +52,8 @@ export default function Home() {
         transition={{ delay: 1.5, duration: 1 }}
         className="mt-16 text-sm text-gray-500"
       >
-        💡 “Mulailah Menjelajah dan Berbelanja Disini, jadilah legenda — hanya di <span className='text-neonGreen font-semibold'>ValdoVerse</span>!”
+        💡 “Mulailah Menjelajah dan Berbelanja Disini, jadilah legenda — hanya
+        di <span className="text-neonGreen font-semibold">ValdoVerse</span>!”
       </motion.p>
     </div>
   );

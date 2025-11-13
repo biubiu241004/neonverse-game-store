@@ -23,6 +23,24 @@ export default function Store() {
     fetchGames();
   }, []);
 
+  const buyNow = async (gameId) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await api.post(
+        "/api/orders/checkout",
+        {
+          items: [{ gameId, quantity: 1 }],
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      alert("Checkout berhasil!");
+    } catch (err) {
+      alert(err.response?.data?.message || "Checkout gagal");
+    }
+  };
+
   const handleAddToCart = async (gameId) => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -92,12 +110,13 @@ export default function Store() {
               <img
                 src={
                   game.image?.startsWith("http")
-                    ? game.image // kalau dari Cloudinary/external
-                    : `http://localhost:8080${game.image}` // ambil dari backend local
+                    ? game.image // kalau URL full
+                    : game.image
+                    ? `http://localhost:8080${game.image}` // dari backend local
+                    : "https://placehold.co/300x200?text=No+Image" // default image
                 }
                 onError={(e) => {
-                  e.target.src =
-                    "https://via.placeholder.com/300x200?text=No+Image";
+                  e.target.src = "https://placehold.co/300x200?text=No+Image";
                 }}
                 alt={game.title}
                 className="rounded-lg mb-4 w-full h-48 object-cover"
@@ -125,6 +144,12 @@ export default function Store() {
                 className="mt-4 w-full py-2 bg-gradient-to-r from-neonPink to-neonPurple text-darkBg font-bold rounded-lg transition-all"
               >
                 Add to Cart
+              </motion.button>
+              <motion.button
+                onClick={() => buyNow(game._id)}
+                className="mt-2 w-full py-2 bg-neonBlue text-darkBg font-bold rounded-lg"
+              >
+                Buy Now
               </motion.button>
             </motion.div>
           ))}
