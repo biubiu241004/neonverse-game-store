@@ -46,7 +46,10 @@ export default function AdminDashboard() {
     try {
       setUploading(true);
       const res = await api.post("/api/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       setForm((prev) => ({ ...prev, image: res.data.imageUrl }));
@@ -220,11 +223,7 @@ export default function AdminDashboard() {
             className="p-4 bg-[#111] border border-neonPurple rounded-lg text-center"
           >
             <img
-              src={
-                game.image?.startsWith("http")
-                  ? game.image
-                  : `http://localhost:8080${game.image}`
-              }
+              src={game.image}
               className="rounded-lg mb-4 w-full h-48 object-cover"
             />
             <h3 className="text-neonPink text-xl font-bold">{game.title}</h3>
