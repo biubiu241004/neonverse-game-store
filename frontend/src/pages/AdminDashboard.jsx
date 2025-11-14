@@ -41,7 +41,7 @@ export default function AdminDashboard() {
     formData.append("image", file);
 
     // Preview langsung
-    setForm({ ...form, image: URL.createObjectURL(file) });
+    setForm({ ...form, image: "" });
 
     try {
       setUploading(true);
