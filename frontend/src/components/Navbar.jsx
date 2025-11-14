@@ -95,24 +95,41 @@ export default function Navbar() {
 
         {/* 🧩 Tambahkan ini: tombol Dashboard muncul hanya untuk admin */}
         {isLoggedIn && role === "admin" && (
-          <motion.div
-            whileHover={{
-              scale: 1.1,
-              textShadow: "0 0 12px #FFA500",
-            }}
-          >
-            <Link
-              to="/admin/dashboard"
-              className={`flex items-center gap-1 transition-colors duration-200 ${
-                location.pathname === "/admin/dashboard"
-                  ? "text-orange-400"
-                  : "text-white hover:text-orange-400"
-              }`}
+          <>
+            {/* DASHBOARD ADMIN */}
+            <motion.div
+              whileHover={{ scale: 1.1, textShadow: "0 0 12px #FFA500" }}
             >
-              <LayoutDashboard size={18} /> Dashboard
-            </Link>
-          </motion.div>
+              <Link
+                to="/admin/dashboard"
+                className={`flex items-center gap-1 transition-colors duration-200 ${
+                  location.pathname === "/admin/dashboard"
+                    ? "text-orange-400"
+                    : "text-white hover:text-orange-400"
+                }`}
+              >
+                <LayoutDashboard size={18} /> Dashboard
+              </Link>
+            </motion.div>
+
+            {/* ORDER MASUK (khusus admin) */}
+            <motion.div
+              whileHover={{ scale: 1.1, textShadow: "0 0 12px #00C8FF" }}
+            >
+              <Link
+                to="/admin/orders"
+                className={`flex items-center gap-1 transition-colors duration-200 ${
+                  location.pathname === "/admin/orders"
+                    ? "text-blue-400"
+                    : "text-white hover:text-blue-400"
+                }`}
+              >
+                📦 Order Masuk
+              </Link>
+            </motion.div>
+          </>
         )}
+
         {/* 🧩 Selesai bagian dashboard */}
 
         {!isLoggedIn ? (

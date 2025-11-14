@@ -8,6 +8,7 @@ import Register from "./pages/Register";
 import AddGame from "./pages/AddGame";
 import Cart from "./pages/Cart";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminOrders from "./pages/AdminOrders";
 // import NeonBackground from "./components/NeonBackground";
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
             <Route path="/cart" element={<Cart />} />
             <Route path="/add-game" element={<AddGame />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/orders" element={<AdminOrders />} />
           </Routes>
         </motion.div>
       </AnimatePresence>
