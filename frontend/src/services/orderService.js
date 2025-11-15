@@ -13,14 +13,14 @@ export const getAdminOrders = () => {
 };
 
 // Konfirmasi order
-export const confirmOrder = (orderId) => {
+export const updateOrderStatus = (orderId, status) => {
   return api.put(
-    `/api/orders/admin/orders/${orderId}/confirm`,
-    {},
+    `/api/orders/admin/orders/${orderId}/status`,
+    { status },
     {
       withCredentials: true,
       headers: {
-        Authorization: `Bearer ${getToken()}`,
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
     }
   );

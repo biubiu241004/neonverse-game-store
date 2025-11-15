@@ -34,20 +34,34 @@ router.get("/admin/orders", protect, async (req, res) => {
 
 // Admin konfirmasi order
 router.put(
-  "/admin/orders/:id/confirm",
+  "/admin/orders/:id/status",
   protect,
   checkAdminOrder,
   async (req, res) => {
     try {
-      const orderId = req.params.id;
+      const { status } = req.body;
+      const allowedStatuses = [
+        "pending",
+        "processing",
+        "completed",
+        "cancel_request",
+        "cancelled",
+      ];
+
+      if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({ message: "Status tidak valid" });
+      }
 
       const updated = await Order.findByIdAndUpdate(
-        orderId,
-        { status: "confirmed" },
+        req.params.id,
+        { status },
         { new: true }
       );
 
-      res.json({ message: "Order berhasil dikonfirmasi", order: updated });
+      res.json({
+        message: `Status berhasil diubah menjadi ${status}`,
+        order: updated,
+      });
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
