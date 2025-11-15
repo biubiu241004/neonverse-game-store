@@ -13,15 +13,35 @@ export const getAdminOrders = () => {
 };
 
 // Konfirmasi order
-export const updateOrderStatus = (orderId, status) => {
+export const updateOrderStatus = (orderId, status, reason = "") => {
   return api.put(
     `/api/orders/admin/orders/${orderId}/status`,
-    { status },
+    { status, reason },
     {
       withCredentials: true,
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
+    }
+  );
+};
+
+export const getUserOrders = () => {
+  return api.get("/api/orders/my-orders", {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`
+    }
+  });
+};
+
+export const requestCancel = (id, reason) => {
+  return api.put(
+    `/api/orders/cancel-request/${id}`,
+    { reason },
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      }
     }
   );
 };

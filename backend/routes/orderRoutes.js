@@ -68,4 +68,65 @@ router.put(
   }
 );
 
+router.put("/admin/cancel-order/:id", protect, async (req, res) => {
+  try {
+    const { reason } = req.body;
+
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Hanya admin!" });
+    }
+
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: "Order tidak ditemukan" });
+
+    order.status = "cancelled";
+    order.cancelReasonAdmin = reason || "Admin tidak memberikan alasan";
+
+    await order.save();
+
+    res.json({ message: "Pesanan dibatalkan oleh admin", order });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.get("/my-orders", protect, async (req, res) => {
+  try {
+    const orders = await Order.find({ user: req.user._id })
+      .populate("items.game")
+      .sort({ createdAt: -1 });
+
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.put("/cancel-request/:id", protect, async (req, res) => {
+  try {
+    const { reason } = req.body;
+
+    const order = await Order.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+
+    if (!order) return res.status(404).json({ message: "Order tidak ditemukan" });
+
+    if (["completed", "cancelled"].includes(order.status))
+      return res.status(400).json({ message: "Order sudah final" });
+
+    order.status = "cancel_request";
+    order.cancelReasonUser = reason || "Tidak ada alasan diberikan";
+
+    await order.save();
+
+    res.json({ message: "Permintaan pembatalan dikirim", order });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 export default router;

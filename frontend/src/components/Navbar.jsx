@@ -132,6 +132,12 @@ export default function Navbar() {
 
         {/* 🧩 Selesai bagian dashboard */}
 
+        {isLoggedIn && (
+          <Link to="/orders" className="text-white hover:text-neonGreen">
+            Orders
+          </Link>
+        )}
+
         {!isLoggedIn ? (
           <>
             <motion.div
