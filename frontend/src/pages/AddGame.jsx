@@ -1,85 +1,133 @@
 import { useState } from "react";
 import api from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 export default function AddGame() {
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     title: "",
+    description: "",
     price: "",
     stock: "",
     rating: "",
     image: "",
-    description: "",
   });
-  const [message, setMessage] = useState("");
+
+  const [preview, setPreview] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const token = localStorage.getItem("token");
-    if (!token) return setMessage("⚠️ You must be logged in as admin!");
+  // 🟣 Upload Gambar Lokal
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    setUploading(true);
 
     try {
-      // 🚀 POST request ke backend Railway atau localhost otomatis
-      await api.post("/api/games", form, {
-        headers: { Authorization: `Bearer ${token}` },
+      const token = localStorage.getItem("token");
+
+      const res = await api.post("/api/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
       });
 
-      setMessage("✅ Game added successfully!");
-      setForm({
-        title: "",
-        price: "",
-        stock: "",
-        rating: "",
-        image: "",
-        description: "",
-      });
+      setForm({ ...form, image: res.data.imageUrl });
+
+      // Preview langsung
+      setPreview(URL.createObjectURL(file));
     } catch (err) {
-      console.error("Error adding game:", err);
-      setMessage(err.response?.data?.message || "❌ Failed to add game");
+      console.error(err);
+      alert("❌ Upload gambar gagal");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // 🟣 Submit Game
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const token = localStorage.getItem("token");
+
+      await api.post(
+        "/api/games/add",
+        { ...form },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      alert("Game berhasil ditambahkan!");
+      navigate("/admin/dashboard");
+    } catch (err) {
+      console.error(err);
+      alert("❌ Gagal menambahkan game");
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-darkBg text-white p-6">
-      <h1 className="text-4xl text-neonPurple mb-8 font-orbitron">
-        Add New Game 🎮
-      </h1>
+    <div className="p-10 min-h-screen bg-[#0b0b14] text-white flex justify-center">
 
       <form
         onSubmit={handleSubmit}
-        className="bg-[#111] p-8 rounded-2xl w-full max-w-lg shadow-neon"
+        className="w-full max-w-xl bg-[#141420] p-8 rounded-xl border border-neonPurple shadow-lg"
       >
-        {["title", "price", "stock", "rating", "image", "description"].map(
-          (field) => (
+        <h1 className="text-3xl font-bold mb-6 text-neonPink text-center">
+          Tambah Game Baru
+        </h1>
+
+        {/* Input Text */}
+        {["title", "description", "price", "stock", "rating"].map((field) => (
+          <div key={field} className="mb-4">
+            <label className="text-sm">{field.toUpperCase()}</label>
             <input
-              key={field}
-              type={
-                field === "price" || field === "stock" || field === "rating"
-                  ? "number"
-                  : "text"
-              }
               name={field}
-              placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
               value={form[field]}
               onChange={handleChange}
-              className="w-full p-3 mb-4 rounded bg-darkBg border border-neonPurple outline-none"
+              className="w-full p-3 bg-[#0b0b14] border border-neonPurple rounded mt-1"
               required
             />
-          )
+          </div>
+        ))}
+
+        {/* Upload Gambar */}
+        <div className="mb-4">
+          <label className="text-sm">Gambar</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="w-full p-3 bg-[#0b0b14] border border-neonPurple rounded mt-1"
+          />
+
+          {uploading && <p className="text-yellow-400 mt-2">Uploading...</p>}
+        </div>
+
+        {/* Preview */}
+        {preview && (
+          <img
+            src={preview}
+            alt="Preview"
+            className="w-full h-60 object-cover rounded mb-4 border border-neonPurple"
+          />
         )}
 
         <button
+          className="w-full py-3 bg-gradient-to-r from-neonPink to-neonPurple font-bold rounded-lg"
           type="submit"
-          className="w-full py-3 bg-neonPink text-darkBg font-bold rounded-lg hover:scale-105 transition-transform"
         >
-          Add Game
+          Tambah Game
         </button>
       </form>
-
-      {message && <p className="mt-4 text-neonBlue">{message}</p>}
     </div>
   );
 }

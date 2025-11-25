@@ -66,44 +66,77 @@ export default function Navbar() {
 
       {/* Menu kanan */}
       <div className="flex gap-8 text-lg font-orbitron items-center">
-        {["/", "/store", "/cart"].map((path, i) => {
-          const labels = ["Home", "Store", "Cart"];
-          const icons = [null, null, <ShoppingCart size={18} key={i} />];
-          const colors = ["neonGreen", "neonPink", "neonBlue"];
-          return (
-            <motion.div
-              key={path}
-              whileHover={{
-                scale: 1.1,
-                textShadow: `0 0 8px var(--${colors[i]})`,
-              }}
-              transition={{ type: "spring", stiffness: 200 }}
-            >
+        {/* ==== HOME SELALU ADA UNTUK SEMUA ROLE ==== */}
+        <motion.div whileHover={{ scale: 1.1 }}>
+          <Link
+            to="/"
+            className={`${
+              location.pathname === "/"
+                ? "text-neonGreen"
+                : "text-white hover:text-neonGreen"
+            }`}
+          >
+            Home
+          </Link>
+        </motion.div>
+
+        {/* ==== STORE SELALU ADA UNTUK SEMUA ROLE ==== */}
+        <motion.div whileHover={{ scale: 1.1 }}>
+          <Link
+            to="/store"
+            className={`${
+              location.pathname === "/store"
+                ? "text-neonPink"
+                : "text-white hover:text-neonPink"
+            }`}
+          >
+            Store
+          </Link>
+        </motion.div>
+
+        {/* =========================
+       USER MENU ONLY
+     ========================= */}
+        {isLoggedIn && role === "user" && (
+          <>
+            <motion.div whileHover={{ scale: 1.1 }}>
               <Link
-                to={path}
-                className={`flex items-center gap-1 transition-all duration-300 ${
-                  location.pathname === path
-                    ? `text-${colors[i]}`
-                    : "text-white hover:text-neonGreen"
+                to="/cart"
+                className={`flex items-center gap-1 ${
+                  location.pathname === "/cart"
+                    ? "text-neonBlue"
+                    : "text-white hover:text-neonBlue"
                 }`}
               >
-                {icons[i]} {labels[i]}
+                <ShoppingCart size={18} /> Cart
               </Link>
             </motion.div>
-          );
-        })}
 
-        {/* 🧩 Tambahkan ini: tombol Dashboard muncul hanya untuk admin */}
+            <motion.div whileHover={{ scale: 1.1 }}>
+              <Link
+                to="/orders"
+                className={`${
+                  location.pathname === "/orders"
+                    ? "text-yellow-300"
+                    : "text-white hover:text-yellow-300"
+                }`}
+              >
+                Orders
+              </Link>
+            </motion.div>
+          </>
+        )}
+
+        {/* =========================
+       ADMIN MENU ONLY
+     ========================= */}
         {isLoggedIn && role === "admin" && (
           <>
-            {/* DASHBOARD ADMIN */}
-            <motion.div
-              whileHover={{ scale: 1.1, textShadow: "0 0 12px #FFA500" }}
-            >
+            <motion.div whileHover={{ scale: 1.1 }}>
               <Link
                 to="/admin/dashboard"
-                className={`flex items-center gap-1 transition-colors duration-200 ${
-                  location.pathname === "/admin/dashboard"
+                className={`flex items-center gap-1 ${
+                  location.pathname.startsWith("/admin/dashboard")
                     ? "text-orange-400"
                     : "text-white hover:text-orange-400"
                 }`}
@@ -111,44 +144,18 @@ export default function Navbar() {
                 <LayoutDashboard size={18} /> Dashboard
               </Link>
             </motion.div>
-
-            {/* ORDER MASUK (khusus admin) */}
-            <motion.div
-              whileHover={{ scale: 1.1, textShadow: "0 0 12px #00C8FF" }}
-            >
-              <Link
-                to="/admin/orders"
-                className={`flex items-center gap-1 transition-colors duration-200 ${
-                  location.pathname === "/admin/orders"
-                    ? "text-blue-400"
-                    : "text-white hover:text-blue-400"
-                }`}
-              >
-                📦 Order Masuk
-              </Link>
-            </motion.div>
           </>
         )}
 
-        {/* 🧩 Selesai bagian dashboard */}
-
-        {isLoggedIn && (
-          <Link to="/orders" className="text-white hover:text-neonGreen">
-            Orders
-          </Link>
-        )}
-
-        {!isLoggedIn ? (
+        {/* =========================
+       GUEST MENU
+     ========================= */}
+        {!isLoggedIn && (
           <>
-            <motion.div
-              whileHover={{
-                scale: 1.1,
-                textShadow: "0 0 12px #FFD700",
-              }}
-            >
+            <motion.div whileHover={{ scale: 1.1 }}>
               <Link
                 to="/login"
-                className={`flex items-center gap-1 transition-colors duration-200 ${
+                className={`flex items-center gap-1 ${
                   location.pathname === "/login"
                     ? "text-yellow-400"
                     : "text-white hover:text-yellow-400"
@@ -158,15 +165,10 @@ export default function Navbar() {
               </Link>
             </motion.div>
 
-            <motion.div
-              whileHover={{
-                scale: 1.1,
-                textShadow: "0 0 12px #A855F7",
-              }}
-            >
+            <motion.div whileHover={{ scale: 1.1 }}>
               <Link
                 to="/register"
-                className={`flex items-center gap-1 transition-colors duration-200 ${
+                className={`flex items-center gap-1 ${
                   location.pathname === "/register"
                     ? "text-purple-400"
                     : "text-white hover:text-purple-400"
@@ -176,34 +178,24 @@ export default function Navbar() {
               </Link>
             </motion.div>
           </>
-        ) : (
+        )}
+
+        {/* =========================
+       LOGGED IN: SHOW NAME + LOGOUT
+     ========================= */}
+        {isLoggedIn && (
           <>
-            <span className="text-neonGreen font-semibold">
-              👋 Halo, {username}
-            </span>
+            <span className="text-neonGreen font-semibold">👋 {username}</span>
 
             <motion.button
-              whileHover={{
-                scale: 1.05,
-                boxShadow: "0 0 15px rgba(255,0,0,0.8)",
-              }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.1 }}
               onClick={handleLogout}
-              className="flex items-center gap-1 text-white hover:text-red-400 transition-colors duration-200 px-3 py-1 rounded-lg"
+              className="flex items-center gap-1 text-white hover:text-red-400"
             >
               <LogOut size={18} /> Logout
             </motion.button>
           </>
         )}
-
-        <motion.button
-          whileHover={{ scale: 1.2 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={toggleTheme}
-          className="text-white mx-3"
-        >
-          {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-        </motion.button>
       </div>
     </motion.nav>
   );

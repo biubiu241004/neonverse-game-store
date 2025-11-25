@@ -5,12 +5,11 @@ import Home from "./pages/Home";
 import Store from "./pages/Store";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import AddGame from "./pages/AddGame";
 import Cart from "./pages/Cart";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminOrders from "./pages/AdminOrders";
 import UserOrders from "./pages/UserOrders";
-// import NeonBackground from "./components/NeonBackground";
+import AddGame from "./pages/AddGame";
 
 export default function App() {
   const location = useLocation();
@@ -18,8 +17,8 @@ export default function App() {
   return (
     <div className="min-h-screen pt-24 bg-white dark:bg-[#0a0a10] text-black dark:text-white transition-colors duration-300">
 
-      {/* <NeonBackground /> */}
       <Navbar />
+
       <AnimatePresence mode="wait">
         <motion.div
           key={location.pathname}
@@ -34,9 +33,13 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/cart" element={<Cart />} />
-            <Route path="/add-game" element={<AddGame />} />
+
+            {/* Admin */}
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/orders" element={<AdminOrders />} />
+            <Route path="/admin/games/add" element={<AddGame />} />
+            
+            {/* User Orders */}
             <Route path="/orders" element={<UserOrders />} />
           </Routes>
         </motion.div>
