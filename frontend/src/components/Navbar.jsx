@@ -23,18 +23,24 @@ export default function Navbar() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setUsername(decoded.username || decoded.name || "User");
-        setRole(decoded.role || "user"); // 🧩 tambahkan baris ini
-        setIsLoggedIn(true);
-      } catch (err) {
-        console.error("Invalid token:", err);
-        localStorage.removeItem("token");
-        setIsLoggedIn(false);
-      }
-    } else {
+
+    // Jika token tidak ada → langsung reset state
+    if (!token) {
+      setIsLoggedIn(false);
+      setUsername("");
+      setRole("");
+      return; // STOP di sini biar tidak decode token null
+    }
+
+    try {
+      const decoded = jwtDecode(token);
+      setUsername(decoded.username || decoded.name || "User");
+      setRole(decoded.role || "user");
+      setIsLoggedIn(true);
+    } catch (err) {
+      console.error("Invalid token:", err);
+
+      localStorage.removeItem("token");
       setIsLoggedIn(false);
       setUsername("");
       setRole("");
@@ -181,8 +187,8 @@ export default function Navbar() {
         )}
 
         {/* =========================
-       LOGGED IN: SHOW NAME + LOGOUT
-     ========================= */}
+        LOGGED IN: SHOW NAME + LOGOUT
+        ========================= */}
         {isLoggedIn && (
           <>
             <span className="text-neonGreen font-semibold">👋 {username}</span>
