@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { getAdminOrders, updateOrderStatus } from "../services/orderService";
 import { motion, AnimatePresence } from "framer-motion";
 
-// 🔥 Toast Notifikasi
+/* ============================= */
+/*          TOAST                */
+/* ============================= */
 const Toast = ({ message, type, onClose }) => (
   <motion.div
     initial={{ opacity: 0, y: -20 }}
@@ -19,30 +21,27 @@ const Toast = ({ message, type, onClose }) => (
   </motion.div>
 );
 
+/* ============================= */
+/*        MAIN COMPONENT         */
+/* ============================= */
+
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("all");
   const [search, setSearch] = useState("");
-  const [selectedOrder, setSelectedOrder] = useState(null);
   const [toast, setToast] = useState(null);
 
-  // 🟣 Modal Pembatalan Admin
-  const [adminCancelModal, setAdminCancelModal] = useState(false);
-  const [adminCancelReason, setAdminCancelReason] = useState("");
-  const [adminCancelOrderId, setAdminCancelOrderId] = useState(null);
-  const [adminCustomReason, setAdminCustomReason] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
-  const statuses = {
-    pending: "Menunggu Konfirmasi",
-    processing: "Perlu Diproses",
-    completed: "Pesanan Selesai",
-    cancel_request: "Sedang Dibatalkan",
-    cancelled: "Pesanan Dibatalkan",
-  };
+  // modal cancel admin
+  const [cancelModal, setCancelModal] = useState(false);
+  const [cancelOrderId, setCancelOrderId] = useState(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [customReason, setCustomReason] = useState("");
 
-  const adminCancelReasons = [
+  const cancelReasons = [
     "Game sedang tidak tersedia",
     "Pembayaran tidak valid",
     "Kesalahan sistem",
@@ -50,25 +49,43 @@ const AdminOrders = () => {
     "Masalah teknis",
   ];
 
+  const statuses = {
+    pending: "Menunggu Konfirmasi",
+    processing: "Sedang Diproses",
+    cancel_request: "Menunggu Pembatalan",
+  };
+
+  /* ============================= */
+  /*          LOAD ORDERS         */
+  /* ============================= */
   useEffect(() => {
     loadOrders();
   }, []);
 
-  useEffect(() => {
-    applyFilters();
-  }, [orders, filterStatus, search]);
-
   const loadOrders = async () => {
     try {
       const res = await getAdminOrders();
-      setOrders(res.data);
-    } catch (_) {
-      setToast({ message: "Gagal memuat order admin", type: "error" });
+
+      // hanya aktif → pending + processing + cancel_request
+      const active = res.data.filter(
+        (o) =>
+          o.status === "pending" ||
+          o.status === "processing" ||
+          o.status === "cancel_request"
+      );
+
+      setOrders(active);
+      setFiltered(active);
+    } catch (err) {
+      setToast({ type: "error", message: "Gagal memuat order admin" });
     }
     setLoading(false);
   };
 
-  const applyFilters = () => {
+  /* ============================= */
+  /*          FILTERING           */
+  /* ============================= */
+  useEffect(() => {
     let data = [...orders];
 
     if (filterStatus !== "all") {
@@ -87,21 +104,27 @@ const AdminOrders = () => {
     }
 
     setFiltered(data);
-  };
+  }, [orders, filterStatus, search]);
 
-  // 🔥 Handle update status BINER (kecuali cancel admin)
-  const handleStatusChange = async (orderId, newStatus) => {
+  /* ============================= */
+  /*      UPDATE STATUS NORMAL    */
+  /* ============================= */
+  const handleStatusChange = async (id, newStatus) => {
     try {
-      await updateOrderStatus(orderId, newStatus);
-      setToast({ message: "Status berhasil diperbarui", type: "success" });
+      await updateOrderStatus(id, newStatus);
+      setToast({ type: "success", message: "Status berhasil diperbarui" });
       loadOrders();
-    } catch (_) {
-      setToast({ message: "Gagal memperbarui status", type: "error" });
+    } catch {
+      setToast({ type: "error", message: "Gagal memperbarui status" });
     }
   };
 
+  /* ============================= */
+  /*         RENDER PAGE          */
+  /* ============================= */
   return (
-    <div className="min-h-screen bg-[#0b0b14] text-white p-8 pt-24">
+    <div className="text-white">
+
       {/* Toast */}
       <AnimatePresence>
         {toast && (
@@ -113,64 +136,33 @@ const AdminOrders = () => {
         )}
       </AnimatePresence>
 
-      <h1 className="text-3xl font-bold mb-6 text-neonPurple">
-        📦 Order Masuk
+      <h1 className="text-2xl font-bold text-neonPurple mb-6">
+        📦 Order Aktif
       </h1>
 
-      {/* Dashboard Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-5 gap-6 mb-8">
-        <StatCard
-          title="Semua Pesanan"
-          value={orders.length}
-          color="neonPink"
-        />
-        <StatCard
-          title="Menunggu Konfirmasi"
-          value={orders.filter((o) => o.status === "pending").length}
-          color="yellow"
-        />
-        <StatCard
-          title="Perlu Diproses"
-          value={orders.filter((o) => o.status === "processing").length}
-          color="blue"
-        />
-        <StatCard
-          title="Selesai"
-          value={orders.filter((o) => o.status === "completed").length}
-          color="green"
-        />
-        <StatCard
-          title="Dibatalkan"
-          value={orders.filter((o) => o.status === "cancelled").length}
-          color="red"
-        />
-      </div>
-
-      {/* Filter + Search */}
+      {/* Filter */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="bg-[#141420] border border-neonPurple text-white px-4 py-2 rounded-lg"
+          className="bg-[#141420] border border-neonPurple px-4 py-2 rounded-lg"
         >
-          <option value="all">Semua Status</option>
-          {Object.entries(statuses).map(([key, label]) => (
-            <option key={key} value={key}>
-              {label}
-            </option>
-          ))}
+          <option value="all">Semua</option>
+          <option value="pending">Menunggu Konfirmasi</option>
+          <option value="processing">Sedang Diproses</option>
+          <option value="cancel_request">Menunggu Pembatalan</option>
         </select>
 
         <input
           type="text"
           placeholder="Cari ID / user / game..."
+          className="flex-1 bg-[#141420] border border-neonPurple px-4 py-2 rounded-lg"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 bg-[#141420] border border-neonPurple px-4 py-2 rounded-lg"
         />
       </div>
 
-      {/* Order List */}
+      {/* List orders */}
       {loading ? (
         <Loading />
       ) : filtered.length === 0 ? (
@@ -182,17 +174,15 @@ const AdminOrders = () => {
               key={order._id}
               order={order}
               statuses={statuses}
-              onSelect={() => setSelectedOrder(order)} // 🔥 buat DETAIL jalan
+              onSelect={() => setSelectedOrder(order)}
               onAdminCancel={() => {
-                setAdminCancelOrderId(order._id);
-                setAdminCancelModal(true);
+                setCancelOrderId(order._id);
+                setCancelModal(true);
               }}
-              // 🔥 Konfirmasi pembatalan user
-              onAcceptUserCancel={() =>
+              onAcceptCancel={() =>
                 handleStatusChange(order._id, "cancelled")
               }
-              // 🔥 Tolak pembatalan user
-              onRejectUserCancel={() =>
+              onRejectCancel={() =>
                 handleStatusChange(order._id, "processing")
               }
               onStatusChange={handleStatusChange}
@@ -201,32 +191,30 @@ const AdminOrders = () => {
         </div>
       )}
 
-      {/* Modal */}
+      {/* Modal pembatalan admin */}
       <AnimatePresence>
-        {adminCancelModal && (
-          <AdminCancelModal
-            show={adminCancelModal}
-            adminCancelReasons={adminCancelReasons}
-            adminCancelReason={adminCancelReason}
-            adminCustomReason={adminCustomReason}
-            setAdminCancelReason={setAdminCancelReason}
-            setAdminCustomReason={setAdminCustomReason}
-            onClose={() => setAdminCancelModal(false)}
+        {cancelModal && (
+          <CancelModal
+            show={cancelModal}
+            cancelReasons={cancelReasons}
+            cancelReason={cancelReason}
+            customReason={customReason}
+            setCancelReason={setCancelReason}
+            setCustomReason={setCustomReason}
+            onClose={() => setCancelModal(false)}
             onSubmit={async (finalReason) => {
-              await updateOrderStatus(
-                adminCancelOrderId,
-                "cancelled",
-                finalReason
-              );
+              await updateOrderStatus(cancelOrderId, "cancelled", finalReason);
 
-              setAdminCancelModal(false);
-              setAdminCancelReason("");
-              setAdminCustomReason("");
+              setCancelModal(false);
+              setCancelReason("");
+              setCustomReason("");
               loadOrders();
             }}
           />
         )}
       </AnimatePresence>
+
+      {/* Modal detail */}
       <AnimatePresence>
         {selectedOrder && (
           <OrderDetailModal
@@ -240,180 +228,113 @@ const AdminOrders = () => {
   );
 };
 
-/* COMPONENTS */
+/* ============================= */
+/*        REUSABLE COMPONENTS    */
+/* ============================= */
 
-/* ========== COMPONENTS LANJUTAN ========== */
+const Loading = () => (
+  <p className="text-center text-gray-400 mt-10">Memuat...</p>
+);
 
-const StatCard = ({ title, value, color }) => {
-  const colors = {
-    neonPink: "border-neonPink/50 text-neonPink",
-    yellow: "border-yellow-300/50 text-yellow-300",
-    green: "border-green-500/50 text-green-400",
-    red: "border-red-500/50 text-red-400",
-    blue: "border-blue-500/50 text-blue-400",
-  };
-
-  return (
-    <div
-      className={`bg-[#141420] p-6 rounded-xl border shadow-lg ${colors[color]}`}
-    >
-      <h3 className="font-bold text-lg">{title}</h3>
-      <p className="text-3xl mt-2">{value}</p>
-    </div>
-  );
-};
-
-/* ========== ORDER CARD ========== */
+const Empty = () => (
+  <p className="text-center text-gray-400 mt-10">Tidak ada order aktif.</p>
+);
 
 const OrderCard = ({
   order,
   statuses,
   onAdminCancel,
-  onAcceptUserCancel,
-  onRejectUserCancel,
+  onAcceptCancel,
+  onRejectCancel,
   onStatusChange,
   onSelect,
-}) => {
-  const renderActions = () => {
-    switch (order.status) {
-      // ======================================
-      // ⬤ STATUS: pending
-      // ======================================
-      case "pending":
-        return (
-          <>
-            <button
-              onClick={() => onStatusChange(order._id, "processing")}
-              className="w-full mt-3 bg-neonPurple py-2 rounded-lg hover:bg-purple-700"
-            >
-              Konfirmasi Pesanan
-            </button>
+}) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="bg-[#141420] border border-neonPurple/40 rounded-xl p-6"
+  >
+    <h2 className="text-neonPink font-semibold">{order._id}</h2>
 
-            {/* ADMIN CANCEL MANUAL */}
-            <button
-              onClick={onAdminCancel}
-              className="w-full mt-2 bg-red-600 py-2 rounded-lg hover:bg-red-700"
-            >
-              Batalkan Pesanan
-            </button>
-          </>
-        );
+    <p className="text-sm">
+      <b>Pembeli:</b> {order.user.username}
+    </p>
 
-      // ======================================
-      // ⬤ STATUS: processing
-      // ======================================
-      case "processing":
-        return (
-          <>
-            <button
-              onClick={() => onStatusChange(order._id, "completed")}
-              className="w-full mt-3 bg-green-600 py-2 rounded-lg hover:bg-green-700"
-            >
-              Tandai Selesai
-            </button>
+    <p className="text-sm">
+      <b>Total:</b> Rp {order.totalAmount.toLocaleString()}
+    </p>
 
-            {/* ADMIN CANCEL MANUAL */}
-            <button
-              onClick={onAdminCancel}
-              className="w-full mt-2 bg-red-600 py-2 rounded-lg hover:bg-red-700"
-            >
-              Batalkan Pesanan
-            </button>
-          </>
-        );
+    <p className="mt-1 text-sm">
+      <b>Status:</b>{" "}
+      <span className="bg-neonPurple/40 px-2 py-1 rounded-full text-xs">
+        {statuses[order.status]}
+      </span>
+    </p>
 
-      // ======================================
-      // ⬤ STATUS: cancel_request (user meminta cancel)
-      // ======================================
-      case "cancel_request":
-        return (
-          <>
-            {/* ADMIN TERIMA PEMBATALAN USER */}
-            <button
-              onClick={onAcceptUserCancel}
-              className="w-full mt-3 bg-red-600 py-2 rounded-lg hover:bg-red-700"
-            >
-              Konfirmasi Pembatalan
-            </button>
+    {/* ACTIONS */}
+    {order.status === "pending" && (
+      <>
+        <button
+          onClick={() => onStatusChange(order._id, "processing")}
+          className="mt-3 w-full bg-neonPurple py-2 rounded-lg"
+        >
+          Konfirmasi
+        </button>
+        <button
+          onClick={onAdminCancel}
+          className="mt-2 w-full bg-red-600 py-2 rounded-lg"
+        >
+          Batalkan
+        </button>
+      </>
+    )}
 
-            {/* ADMIN TOLAK PEMBATALAN USER */}
-            <button
-              onClick={onRejectUserCancel}
-              className="w-full mt-2 bg-blue-600 py-2 rounded-lg hover:bg-blue-700"
-            >
-              Tolak Pembatalan
-            </button>
-          </>
-        );
+    {order.status === "processing" && (
+      <>
+        <button
+          onClick={() => onStatusChange(order._id, "completed")}
+          className="mt-3 w-full bg-green-600 py-2 rounded-lg"
+        >
+          Tandai Selesai
+        </button>
+        <button
+          onClick={onAdminCancel}
+          className="mt-2 w-full bg-red-600 py-2 rounded-lg"
+        >
+          Batalkan
+        </button>
+      </>
+    )}
 
-      // ======================================
-      // ⬤ STATUS FINAL
-      // ======================================
-      case "completed":
-      case "cancelled":
-        return (
-          <p className="text-gray-400 mt-3 italic">
-            Status final — tidak dapat diubah
-          </p>
-        );
+    {order.status === "cancel_request" && (
+      <>
+        <button
+          onClick={onAcceptCancel}
+          className="mt-3 w-full bg-red-600 py-2 rounded-lg"
+        >
+          Terima Pembatalan
+        </button>
+        <button
+          onClick={onRejectCancel}
+          className="mt-2 w-full bg-blue-600 py-2 rounded-lg"
+        >
+          Tolak Pembatalan
+        </button>
+      </>
+    )}
 
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-[#141420] border border-neonPurple/40 rounded-xl p-6"
+    <button
+      onClick={onSelect}
+      className="mt-4 w-full bg-neonBlue py-2 rounded-lg"
     >
-      <h2 className="text-neonPink font-semibold">{order._id}</h2>
-
-      <p className="text-sm">
-        <b>Pembeli:</b> {order.user.username}
-      </p>
-      <p className="text-sm">
-        <b>Total:</b> Rp {order.totalAmount.toLocaleString()}
-      </p>
-
-      <p className="mt-1 text-sm">
-        <b>Status:</b>{" "}
-        <span className="bg-neonPurple/40 px-2 py-1 rounded-full text-xs">
-          {statuses[order.status]}
-        </span>
-      </p>
-
-      {renderActions()}
-
-      <button
-        className="mt-4 w-full bg-neonBlue py-2 rounded-lg hover:bg-blue-700"
-        onClick={onSelect}
-      >
-        Detail
-      </button>
-    </motion.div>
-  );
-};
-
-/* ========== LOADING ========== */
-
-const Loading = () => (
-  <div className="text-center text-gray-400 animate-pulse mt-20">
-    <div className="text-4xl">⚡</div>
-    <p className="mt-2">Memuat data...</p>
-  </div>
+      Detail
+    </button>
+  </motion.div>
 );
 
-/* ========== EMPTY ========== */
-
-const Empty = () => (
-  <div className="text-center text-gray-400 text-lg mt-10">
-    Tidak ada order ditemukan.
-  </div>
-);
-
-/* ========== DETAIL MODAL ========== */
+/* ============================= */
+/*       DETAIL MODAL           */
+/* ============================= */
 
 const OrderDetailModal = ({ order, statuses, onClose }) => (
   <motion.div
@@ -427,49 +348,34 @@ const OrderDetailModal = ({ order, statuses, onClose }) => (
       initial={{ scale: 0.8 }}
       animate={{ scale: 1 }}
       exit={{ scale: 0.8 }}
-      className="bg-[#141420] w-[90%] md:w-[450px] p-6 rounded-xl border border-neonPurple shadow-lg"
+      className="bg-[#141420] w-[90%] md:w-[450px] p-6 rounded-xl border border-neonPurple"
       onClick={(e) => e.stopPropagation()}
     >
       <h2 className="text-xl font-bold text-neonPink mb-3">Detail Order</h2>
 
-      <p>
-        <b>ID:</b> {order._id}
-      </p>
-      <p>
-        <b>Pembeli:</b> {order.user.username}
-      </p>
-      <p>
-        <b>Total:</b> Rp {order.totalAmount.toLocaleString()}
-      </p>
-
-      <p>
-        <b>Status:</b> {statuses[order.status]}
-      </p>
+      <p><b>ID:</b> {order._id}</p>
+      <p><b>Pembeli:</b> {order.user.username}</p>
+      <p><b>Total:</b> Rp {order.totalAmount.toLocaleString()}</p>
+      <p><b>Status:</b> {statuses[order.status]}</p>
 
       {order.cancelReasonUser && (
-        <p className="mt-2 text-sm text-yellow-300">
+        <p className="mt-2 text-yellow-300">
           <b>Alasan User:</b> {order.cancelReasonUser}
-        </p>
-      )}
-
-      {order.cancelReasonAdmin && (
-        <p className="mt-2 text-sm text-red-300">
-          <b>Alasan Admin:</b> {order.cancelReasonAdmin}
         </p>
       )}
 
       <h3 className="mt-4 font-bold text-neonGreen">Item:</h3>
       <ul className="list-disc ml-6 text-sm">
-        {order.items.map((item) => (
-          <li key={item._id}>
-            {item.game?.title} ({item.quantity}x)
+        {order.items.map((i) => (
+          <li key={i._id}>
+            {i.game?.title} ({i.quantity}x)
           </li>
         ))}
       </ul>
 
       <button
-        className="mt-5 w-full bg-neonBlue py-2 rounded-lg hover:bg-blue-700"
         onClick={onClose}
+        className="mt-5 w-full bg-neonBlue py-2 rounded-lg"
       >
         Tutup
       </button>
@@ -477,44 +383,31 @@ const OrderDetailModal = ({ order, statuses, onClose }) => (
   </motion.div>
 );
 
-/* ========== MODAL ALASAN PEMBATALAN ADMIN ========== */
+/* ============================= */
+/*       CANCEL MODAL           */
+/* ============================= */
 
-export const AdminCancelModal = ({
+const CancelModal = ({
   show,
-  adminCancelReasons,
+  cancelReasons,
+  cancelReason,
+  customReason,
+  setCancelReason,
+  setCustomReason,
   onClose,
   onSubmit,
-  adminCancelReason,
-  setAdminCancelReason,
-  adminCustomReason,
-  setAdminCustomReason,
 }) => {
-  const [errorShake, setErrorShake] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [error, setError] = useState("");
 
   if (!show) return null;
 
   const handleSubmit = () => {
-    // Validasi pilihan alasan
-    if (!adminCancelReason) {
-      setErrorMessage("Pilih alasan pembatalan dulu bg 🙏");
-      setErrorShake(true);
-      setTimeout(() => setErrorShake(false), 500);
-      return;
-    }
+    if (!cancelReason) return setError("Pilih alasan dulu bg 🙏");
 
-    // Validasi alasan lain
-    if (adminCancelReason === "other" && adminCustomReason.trim() === "") {
-      setErrorMessage("Isi alasan tambahan dulu ya bg 😭");
-      setErrorShake(true);
-      setTimeout(() => setErrorShake(false), 500);
-      return;
-    }
+    if (cancelReason === "other" && customReason.trim() === "")
+      return setError("Isi alasan lain dulu 😭");
 
-    const finalReason =
-      adminCancelReason === "other" ? adminCustomReason : adminCancelReason;
-
-    onSubmit(finalReason);
+    onSubmit(cancelReason === "other" ? customReason : cancelReason);
   };
 
   return (
@@ -529,30 +422,24 @@ export const AdminCancelModal = ({
         initial={{ scale: 0.8 }}
         animate={{ scale: 1 }}
         exit={{ scale: 0.8 }}
-        className="bg-[#141420] w-[90%] md:w-[400px] p-6 rounded-xl border border-red-500 shadow-lg"
+        className="bg-[#141420] w-[90%] md:w-[400px] p-6 rounded-xl border border-red-500"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-xl font-bold text-red-400 mb-3">
-          Alasan Pembatalan Admin
+          Alasan Pembatalan
         </h2>
 
-        {/* Dropdown alasan */}
-        <label className="text-sm font-semibold">Pilih Alasan:</label>
         <select
-          className={`w-full bg-[#1e1e2d] border ${
-            errorMessage && !adminCancelReason
-              ? "border-red-500"
-              : "border-red-400"
-          } p-2 rounded-lg text-white mt-1`}
-          value={adminCancelReason}
+          value={cancelReason}
           onChange={(e) => {
-            setAdminCancelReason(e.target.value);
-            setErrorMessage("");
+            setCancelReason(e.target.value);
+            setError("");
           }}
+          className="w-full bg-[#1e1e2d] border border-red-400 p-2 rounded-lg"
         >
           <option value="">-- Pilih alasan --</option>
 
-          {adminCancelReasons.map((r) => (
+          {cancelReasons.map((r) => (
             <option key={r} value={r}>
               {r}
             </option>
@@ -561,50 +448,31 @@ export const AdminCancelModal = ({
           <option value="other">Alasan Lain...</option>
         </select>
 
-        {/* Textarea jika “alasan lain” */}
-        {adminCancelReason === "other" && (
+        {cancelReason === "other" && (
           <textarea
-            className={`w-full bg-[#1e1e2d] border ${
-              errorMessage && adminCustomReason.trim() === ""
-                ? "border-red-500"
-                : "border-red-400"
-            } p-3 rounded-lg text-white mt-3`}
-            rows={3}
-            placeholder="Tulis alasan tambahan admin..."
-            value={adminCustomReason}
+            value={customReason}
             onChange={(e) => {
-              setAdminCustomReason(e.target.value);
-              setErrorMessage("");
+              setCustomReason(e.target.value);
+              setError("");
             }}
+            rows={3}
+            placeholder="Tulis alasan tambahan..."
+            className="w-full bg-[#1e1e2d] border border-red-400 p-2 rounded-lg mt-3"
           />
         )}
 
-        {/* Pesan error */}
-        {errorMessage && (
-          <p className="text-red-400 text-sm mt-2 animate-pulse">
-            {errorMessage}
-          </p>
-        )}
+        {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
 
-        {/* Tombol submit */}
-        <motion.button
-          animate={errorShake ? { x: [-8, 8, -8, 8, 0] } : {}}
-          transition={{ duration: 0.4 }}
+        <button
           onClick={handleSubmit}
-          className="mt-4 w-full bg-red-600 py-2 rounded-lg hover:bg-red-700"
+          className="mt-4 w-full bg-red-600 py-2 rounded-lg"
         >
           Batalkan Pesanan
-        </motion.button>
+        </button>
 
-        {/* Tombol batal */}
         <button
-          onClick={() => {
-            onClose();
-            setErrorMessage("");
-            setAdminCancelReason("");
-            setAdminCustomReason("");
-          }}
-          className="mt-3 w-full bg-gray-600 py-2 rounded-lg hover:bg-gray-700"
+          onClick={onClose}
+          className="mt-3 w-full bg-gray-600 py-2 rounded-lg"
         >
           Batal
         </button>
