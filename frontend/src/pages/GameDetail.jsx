@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import api from "../services/api";
-import { addToCart } from "../services/cartService"; // gunakan service cart kamu atau sesuaikan
-import { getToken } from "../services/authService"; // optional helper (see note)
+import { addToCart } from "../services/cartService";
+import { getToken } from "../services/authService";
 
 export default function GameDetail() {
   const { id } = useParams();
