@@ -1,5 +1,6 @@
 import Game from "../models/Game.js";
 import Review from "../models/Review.js";
+import Order from "../models/Order.js";
 
 // GET all games
 export const getAllGames = async (req, res) => {
@@ -107,6 +108,19 @@ export const getReviews = async (req, res) => {
 // ADD review
 export const addReview = async (req, res) => {
   try {
+    // cek apakah user sudah menerima pesanan
+    const hasBought = await Order.findOne({
+      user: req.user._id,
+      "items.game": req.params.id,
+      status: "received",
+    });
+
+    if (!hasBought) {
+      return res
+        .status(403)
+        .json({ message: "Kamu harus membeli dan menerima pesanan untuk review." });
+    }
+
     const rev = await Review.create({
       game: req.params.id,
       user: req.user._id,
@@ -115,7 +129,7 @@ export const addReview = async (req, res) => {
     });
 
     res.status(201).json(rev);
-  } catch {
+  } catch (error) {
     res.status(500).json({ message: "Gagal menambah review" });
   }
 };

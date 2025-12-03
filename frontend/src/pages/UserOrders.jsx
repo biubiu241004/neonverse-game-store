@@ -1,3 +1,4 @@
+import api from "../services/api";
 import { useEffect, useState } from "react";
 import { getUserOrders, requestCancel } from "../services/orderService";
 import { motion, AnimatePresence } from "framer-motion";
@@ -61,6 +62,26 @@ export default function UserOrders() {
       load();
     } catch (err) {
       setToast({ type: "error", msg: "Gagal mengirim permintaan." });
+    }
+  };
+
+  const confirmReceived = async (orderId) => {
+    try {
+      await api.put(
+        `/api/orders/receive/${orderId}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+
+      setToast({
+        type: "success",
+        msg: "Pesanan diterima! Kamu bisa memberi review.",
+      });
+      load();
+    } catch {
+      setToast({ type: "error", msg: "Gagal mengupdate status" });
     }
   };
 
@@ -137,6 +158,14 @@ export default function UserOrders() {
               >
                 Detail
               </button>
+              {order.status === "completed" && (
+                <button
+                  className="mt-3 w-full bg-green-600 py-2 rounded-lg hover:bg-green-700"
+                  onClick={() => confirmReceived(order._id)}
+                >
+                  Pesanan Diterima
+                </button>
+              )}
             </motion.div>
           ))}
         </div>

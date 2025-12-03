@@ -22,7 +22,8 @@ const orderSchema = new mongoose.Schema({
     enum: [
       "pending",
       "processing",
-      "completed",
+      "completed", // admin selesai
+      "received", // user terima (BARU)
       "cancel_request",
       "cancelled",
     ],

@@ -44,6 +44,7 @@ router.put(
         "pending",
         "processing",
         "completed",
+        "received",
         "cancel_request",
         "cancelled",
       ];
@@ -124,6 +125,42 @@ router.put("/cancel-request/:id", protect, async (req, res) => {
 
     res.json({ message: "Permintaan pembatalan dikirim", order });
 
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.put("/receive/:id", protect, async (req, res) => {
+  try {
+    const order = await Order.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+
+    if (!order) return res.status(404).json({ message: "Order tidak ditemukan" });
+
+    if (order.status !== "completed") {
+      return res.status(400).json({ message: "Admin belum menyelesaikan pesanan" });
+    }
+
+    order.status = "received";
+    await order.save();
+
+    res.json({ message: "Pesanan diterima, kamu bisa memberi review" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.get("/can-review/:gameId", protect, async (req, res) => {
+  try {
+    const exists = await Order.findOne({
+      user: req.user._id,
+      status: "received",                  // WAJIB sudah diterima user
+      "items.game": req.params.gameId,
+    });
+
+    res.json({ allowed: !!exists });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
