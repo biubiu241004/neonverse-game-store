@@ -166,4 +166,33 @@ router.get("/can-review/:gameId", protect, async (req, res) => {
   }
 });
 
+router.post("/review/:orderId/:gameId", protect, async (req, res) => {
+  try {
+    const { rating, comment } = req.body;
+
+    // user hanya bisa review setelah received
+    const order = await Order.findOne({
+      _id: req.params.orderId,
+      user: req.user._id,
+      status: "received",
+      "items.game": req.params.gameId
+    });
+
+    if (!order)
+      return res.status(400).json({ message: "Tidak bisa review. Pesanan belum diterima." });
+
+    const rev = await Review.create({
+      user: req.user._id,
+      game: req.params.gameId,
+      rating,
+      comment
+    });
+
+    res.json({ message: "Review berhasil ditambahkan", review: rev });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 export default router;

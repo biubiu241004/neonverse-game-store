@@ -24,6 +24,13 @@ export default function UserOrders() {
   const [errorShake, setErrorShake] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewOrderId, setReviewOrderId] = useState(null);
+  const [reviewGameId, setReviewGameId] = useState(null);
+
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+
   const userReasons = [
     "Berubah pikiran",
     "Salah memilih produk",
@@ -65,7 +72,7 @@ export default function UserOrders() {
     }
   };
 
-  const confirmReceived = async (orderId) => {
+  const confirmReceived = async (orderId, gameId) => {
     try {
       await api.put(
         `/api/orders/receive/${orderId}`,
@@ -75,11 +82,9 @@ export default function UserOrders() {
         }
       );
 
-      setToast({
-        type: "success",
-        msg: "Pesanan diterima! Kamu bisa memberi review.",
-      });
-      load();
+      setReviewOrderId(orderId);
+      setReviewGameId(gameId);
+      setShowReviewModal(true);
     } catch {
       setToast({ type: "error", msg: "Gagal mengupdate status" });
     }
@@ -158,10 +163,12 @@ export default function UserOrders() {
               >
                 Detail
               </button>
-              {order.status === "completed" && (
+              {selected.status === "completed" && (
                 <button
-                  className="mt-3 w-full bg-green-600 py-2 rounded-lg hover:bg-green-700"
-                  onClick={() => confirmReceived(order._id)}
+                  className="mt-3 w-full bg-green-600 py-2 rounded-lg"
+                  onClick={() =>
+                    confirmReceived(selected._id, selected.items[0].game._id)
+                  }
                 >
                   Pesanan Diterima
                 </button>
@@ -341,6 +348,81 @@ export default function UserOrders() {
                   setCustomReason("");
                   setErrorMessage("");
                 }}
+              >
+                Batal
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showReviewModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
+              className="bg-[#141420] w-[90%] md:w-[400px] p-6 rounded-xl border border-neonPurple"
+            >
+              <h2 className="text-xl font-bold text-neonPink mb-3">
+                Beri Review
+              </h2>
+
+              <label>Rating:</label>
+              <select
+                value={rating}
+                onChange={(e) => setRating(e.target.value)}
+                className="bg-[#1e1e2d] w-full p-2 rounded mb-3"
+              >
+                {[5, 4, 3, 2, 1].map((r) => (
+                  <option key={r} value={r}>
+                    {r} ⭐
+                  </option>
+                ))}
+              </select>
+
+              <textarea
+                placeholder="Tulis komentar..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                className="bg-[#1e1e2d] w-full p-3 rounded mb-3"
+                rows={3}
+              />
+
+              <button
+                onClick={async () => {
+                  await api.post(
+                    `/api/orders/review/${reviewOrderId}/${reviewGameId}`,
+                    { rating, comment },
+                    {
+                      headers: {
+                        Authorization: `Bearer ${localStorage.getItem(
+                          "token"
+                        )}`,
+                      },
+                    }
+                  );
+
+                  setToast({
+                    type: "success",
+                    msg: "Review berhasil dikirim!",
+                  });
+                  setShowReviewModal(false);
+                  load();
+                }}
+                className="w-full bg-neonBlue py-2 rounded"
+              >
+                Kirim Review
+              </button>
+
+              <button
+                onClick={() => setShowReviewModal(false)}
+                className="w-full mt-3 bg-gray-700 py-2 rounded"
               >
                 Batal
               </button>
