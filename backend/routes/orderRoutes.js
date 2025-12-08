@@ -1,30 +1,32 @@
 import express from "express";
 import { checkout } from "../controllers/orderController.js";
-import protect from "../middleware/authMiddleware.js"; // ini middleware kamu
-import Order from "../models/Order.js"; // import Order model
-import { checkAdminOrder } from "../middleware/checkAdminOrder.js"; // middleware baru
+import protect from "../middleware/authMiddleware.js";
+import Order from "../models/Order.js";
+import Review from "../models/Review.js";
+import { checkAdminOrder } from "../middleware/checkAdminOrder.js";
 
 const router = express.Router();
 
-// Checkout
+// CHECKOUT
 router.post("/checkout", protect, checkout);
 
-// Admin melihat order miliknya
+// GET ADMIN ORDERS
 router.get("/admin/orders", protect, async (req, res) => {
   try {
-    if (req.user.role !== "admin") {
+    if (req.user.role !== "admin")
       return res.status(403).json({ message: "Hanya admin!" });
-    }
 
     const adminId = req.user._id;
 
-    const orders = await Order.find().populate("items.game").populate("user");
+    const orders = await Order.find()
+      .populate("items.game")
+      .populate("user");
 
-    const filtered = orders.filter((order) => {
-      return order.items.some((item) => {
-        return item.game.createdBy?.toString() === adminId.toString();
-      });
-    });
+    const filtered = orders.filter((order) =>
+      order.items.some(
+        (i) => i.game?.createdBy?.toString() === adminId.toString()
+      )
+    );
 
     res.json(filtered);
   } catch (err) {
@@ -32,7 +34,7 @@ router.get("/admin/orders", protect, async (req, res) => {
   }
 });
 
-// Admin konfirmasi order
+// UPDATE STATUS
 router.put(
   "/admin/orders/:id/status",
   protect,
@@ -40,7 +42,8 @@ router.put(
   async (req, res) => {
     try {
       const { status } = req.body;
-      const allowedStatuses = [
+
+      const allowed = [
         "pending",
         "processing",
         "completed",
@@ -49,9 +52,8 @@ router.put(
         "cancelled",
       ];
 
-      if (!allowedStatuses.includes(status)) {
+      if (!allowed.includes(status))
         return res.status(400).json({ message: "Status tidak valid" });
-      }
 
       const updated = await Order.findByIdAndUpdate(
         req.params.id,
@@ -59,51 +61,14 @@ router.put(
         { new: true }
       );
 
-      res.json({
-        message: `Status berhasil diubah menjadi ${status}`,
-        order: updated,
-      });
+      res.json({ message: "Status diubah", order: updated });
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
   }
 );
 
-router.put("/admin/cancel-order/:id", protect, async (req, res) => {
-  try {
-    const { reason } = req.body;
-
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Hanya admin!" });
-    }
-
-    const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ message: "Order tidak ditemukan" });
-
-    order.status = "cancelled";
-    order.cancelReasonAdmin = reason || "Admin tidak memberikan alasan";
-
-    await order.save();
-
-    res.json({ message: "Pesanan dibatalkan oleh admin", order });
-
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-router.get("/my-orders", protect, async (req, res) => {
-  try {
-    const orders = await Order.find({ user: req.user._id })
-      .populate("items.game")
-      .sort({ createdAt: -1 });
-
-    res.json(orders);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
+// USER CANCEL REQUEST
 router.put("/cancel-request/:id", protect, async (req, res) => {
   try {
     const { reason } = req.body;
@@ -119,17 +84,16 @@ router.put("/cancel-request/:id", protect, async (req, res) => {
       return res.status(400).json({ message: "Order sudah final" });
 
     order.status = "cancel_request";
-    order.cancelReasonUser = reason || "Tidak ada alasan diberikan";
-
+    order.cancelReasonUser = reason;
     await order.save();
 
     res.json({ message: "Permintaan pembatalan dikirim", order });
-
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
+// USER CONFIRM RECEIVED
 router.put("/receive/:id", protect, async (req, res) => {
   try {
     const order = await Order.findOne({
@@ -137,59 +101,46 @@ router.put("/receive/:id", protect, async (req, res) => {
       user: req.user._id,
     });
 
-    if (!order) return res.status(404).json({ message: "Order tidak ditemukan" });
+    if (!order)
+      return res.status(404).json({ message: "Order tidak ditemukan" });
 
-    if (order.status !== "completed") {
+    if (order.status !== "completed")
       return res.status(400).json({ message: "Admin belum menyelesaikan pesanan" });
-    }
 
     order.status = "received";
     await order.save();
 
-    res.json({ message: "Pesanan diterima, kamu bisa memberi review" });
+    res.json({ message: "Pesanan diterima" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-router.get("/can-review/:gameId", protect, async (req, res) => {
-  try {
-    const exists = await Order.findOne({
-      user: req.user._id,
-      status: "received",                  // WAJIB sudah diterima user
-      "items.game": req.params.gameId,
-    });
-
-    res.json({ allowed: !!exists });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
+// USER ADD REVIEW
 router.post("/review/:orderId/:gameId", protect, async (req, res) => {
   try {
     const { rating, comment } = req.body;
 
-    // user hanya bisa review setelah received
     const order = await Order.findOne({
       _id: req.params.orderId,
       user: req.user._id,
       status: "received",
-      "items.game": req.params.gameId
+      "items.game": req.params.gameId,
     });
 
     if (!order)
-      return res.status(400).json({ message: "Tidak bisa review. Pesanan belum diterima." });
+      return res
+        .status(400)
+        .json({ message: "Tidak bisa review. Pesanan belum diterima." });
 
     const rev = await Review.create({
       user: req.user._id,
       game: req.params.gameId,
       rating,
-      comment
+      comment,
     });
 
     res.json({ message: "Review berhasil ditambahkan", review: rev });
-
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
