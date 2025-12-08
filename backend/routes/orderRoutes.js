@@ -68,6 +68,19 @@ router.put(
   }
 );
 
+// USER GET ALL ORDERS
+router.get("/my-orders", protect, async (req, res) => {
+  try {
+    const orders = await Order.find({ user: req.user._id })
+      .populate("items.game")
+      .sort({ createdAt: -1 });
+
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // USER CANCEL REQUEST
 router.put("/cancel-request/:id", protect, async (req, res) => {
   try {
