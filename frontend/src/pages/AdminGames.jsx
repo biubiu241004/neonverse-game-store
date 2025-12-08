@@ -95,17 +95,22 @@ export default function AdminGames() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-
       {/* LIST GAME */}
       <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
         {games.map((game) => (
-          <div key={game._id} className="p-4 bg-[#111] border border-neonPurple rounded-lg">
-            <img src={game.image} className="w-full h-48 object-cover rounded mb-3" />
+          <div
+            key={game._id}
+            className="p-4 bg-[#111] border border-neonPurple rounded-lg"
+          >
+            <img
+              src={game.image}
+              className="w-full h-48 object-cover rounded mb-3"
+            />
 
             <h3 className="text-neonPink text-xl font-bold">{game.title}</h3>
 
             <button
-              className="text-yellow-400"
+              className="text-yellow-400 relative z-50"
               onClick={() => {
                 setEditingId(game._id);
                 setForm(game);
@@ -123,7 +128,6 @@ export default function AdminGames() {
           </div>
         ))}
       </div>
-
     </div>
   );
 }

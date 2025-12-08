@@ -15,7 +15,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="p-10 text-white min-h-screen bg-[#0b0b14]">
+    <div className="p-10 text-white min-h-screen bg-[#0b0b14] overflow-auto">
 
       <h1 className="text-3xl font-bold text-neonPink mb-6">
         🎮 Dashboard Admin
