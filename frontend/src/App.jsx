@@ -11,6 +11,7 @@ import AdminOrders from "./pages/AdminOrders";
 import UserOrders from "./pages/UserOrders";
 import AddGame from "./pages/AddGame";
 import GameDetail from "./pages/GameDetail";
+import EditGame from "./pages/EditGame";
 
 export default function App() {
   const location = useLocation();
@@ -40,6 +41,7 @@ export default function App() {
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/orders" element={<AdminOrders />} />
             <Route path="/admin/games/add" element={<AddGame />} />
+            <Route path="/admin/games/edit/:id" element={<EditGame />} />
             
             {/* User Orders */}
             <Route path="/orders" element={<UserOrders />} />

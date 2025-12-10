@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 export default function AdminGames() {
@@ -11,6 +12,8 @@ export default function AdminGames() {
     rating: "",
     image: "",
   });
+
+  const navigate = useNavigate();
 
   const [uploading, setUploading] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -110,11 +113,8 @@ export default function AdminGames() {
             <h3 className="text-neonPink text-xl font-bold">{game.title}</h3>
 
             <button
-              className="text-yellow-400 relative z-50"
-              onClick={() => {
-                setEditingId(game._id);
-                setForm(game);
-              }}
+              className="text-yellow-400"
+              onClick={() => navigate(`/admin/games/edit/${game._id}`)}
             >
               Edit
             </button>
