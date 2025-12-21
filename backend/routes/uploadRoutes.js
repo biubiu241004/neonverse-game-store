@@ -5,14 +5,12 @@ import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Memory storage agar cocok untuk Railway/Vercel
 const storage = multer.memoryStorage();
 
-// Filter format yg diterima
 const fileFilter = (req, file, cb) => {
   if (
     file.mimetype === "image/jpeg" ||
-    file.mimetype === "image/jpg" ||     // ← FIX DISINI
+    file.mimetype === "image/jpg" ||
     file.mimetype === "image/png" ||
     file.mimetype === "image/webp"
   ) {
@@ -31,7 +29,6 @@ router.post("/", protect, upload.single("image"), async (req, res) => {
       return res.status(400).json({ message: "Tidak ada file diupload" });
     }
 
-    // Convert buffer → base64
     const fileBase64 =
       `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
 

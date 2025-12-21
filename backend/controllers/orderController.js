@@ -1,5 +1,6 @@
 import Order from "../models/Order.js";
 import Game from "../models/Game.js";
+import User from "../models/User.js";
 
 export const checkout = async (req, res) => {
   console.log("Checkout request body:", req.body);
@@ -58,19 +59,41 @@ export const receiveOrder = async (req, res) => {
     const order = await Order.findOne({
       _id: req.params.id,
       user: req.user._id,
+    }).populate({
+      path: "items.game",
+      select: "price createdBy",
     });
 
-    if (!order) return res.status(404).json({ message: "Order tidak ditemukan" });
+    if (!order)
+      return res.status(404).json({ message: "Order tidak ditemukan" });
 
-    if (order.status !== "completed") {
-      return res.status(400).json({ message: "Admin belum menyelesaikan pesanan" });
+    if (order.status !== "completed")
+      return res
+        .status(400)
+        .json({ message: "Admin belum menyelesaikan pesanan" });
+
+    // 🔥 FIX AMAN: UPDATE LANGSUNG KE USER COLLECTION
+    for (const item of order.items) {
+      const game = item.game;
+      if (!game || !game.createdBy) continue;
+
+      const income = item.price * item.quantity;
+
+      await User.findByIdAndUpdate(
+        game.createdBy,
+        { $inc: { balance: income } }, // ⬅️ KUNCI
+        { new: true }
+      );
     }
 
     order.status = "received";
     await order.save();
 
-    res.json({ message: "Pesanan diterima, kamu bisa memberi review 🎉" });
-  } catch {
-    res.status(500).json({ message: "Gagal mengupdate status" });
+    res.json({
+      message: "Pesanan diterima, saldo admin berhasil ditambahkan",
+    });
+  } catch (err) {
+    console.error("RECEIVE ORDER ERROR:", err);
+    res.status(500).json({ message: err.message });
   }
 };

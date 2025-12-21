@@ -2,9 +2,6 @@ import { useEffect, useState } from "react";
 import api from "../services/api";
 import { motion, AnimatePresence } from "framer-motion";
 
-/* ============================= */
-/*          MAIN PAGE            */
-/* ============================= */
 export default function AdminHistory() {
   const [orders, setOrders] = useState([]);
   const [filtered, setFiltered] = useState([]);
@@ -14,9 +11,6 @@ export default function AdminHistory() {
   const [date, setDate] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  /* ============================= */
-  /*          LOAD DATA           */
-  /* ============================= */
   useEffect(() => {
     loadHistory();
   }, []);
@@ -30,7 +24,8 @@ export default function AdminHistory() {
       });
 
       const history = res.data.filter(
-        (o) => o.status === "completed" || o.status === "cancelled"
+        (o) =>
+          o.status === "completed" || o.status === "received" || o.status === "cancelled"
       );
 
       setOrders(history);
@@ -41,9 +36,6 @@ export default function AdminHistory() {
     setLoading(false);
   };
 
-  /* ============================= */
-  /*           FILTERING          */
-  /* ============================= */
   useEffect(() => {
     let data = [...orders];
 
@@ -64,16 +56,12 @@ export default function AdminHistory() {
     setFiltered(data);
   }, [orders, search, date]);
 
-  /* ============================= */
-  /*           RENDER PAGE         */
-  /* ============================= */
   return (
     <div className="text-white">
       <h1 className="text-2xl font-bold text-neonPink mb-6 flex items-center gap-2">
         📜 Riwayat Order
       </h1>
 
-      {/* FILTERS */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <input
           type="date"
@@ -91,7 +79,6 @@ export default function AdminHistory() {
         />
       </div>
 
-      {/* CONTENT */}
       {loading ? (
         <p className="text-gray-400">Memuat...</p>
       ) : filtered.length === 0 ? (
@@ -141,7 +128,6 @@ export default function AdminHistory() {
         </div>
       )}
 
-      {/* DETAIL MODAL */}
       <AnimatePresence>
         {selectedOrder && (
           <DetailModal
@@ -154,9 +140,6 @@ export default function AdminHistory() {
   );
 }
 
-/* ============================= */
-/*          DETAIL MODAL         */
-/* ============================= */
 const DetailModal = ({ order, onClose }) => (
   <motion.div
     initial={{ opacity: 0 }}

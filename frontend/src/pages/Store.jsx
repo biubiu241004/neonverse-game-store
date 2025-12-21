@@ -10,7 +10,6 @@ export default function Store() {
   const [error, setError] = useState("");
   const [role, setRole] = useState("user");
 
-  // 🔥 Ambil role user/admin dari token
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -23,7 +22,6 @@ export default function Store() {
     }
   }, []);
 
-  // 🔥 Fetch game
   useEffect(() => {
     const fetchGames = async () => {
       try {
@@ -38,10 +36,6 @@ export default function Store() {
     };
     fetchGames();
   }, []);
-
-  // ============================================
-  // UI
-  // ============================================
 
   if (loading) {
     return (

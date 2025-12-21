@@ -9,6 +9,7 @@ import uploadRoutes from "./routes/uploadRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import orderRoutes from "./routes/orderRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -16,9 +17,8 @@ connectDB();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();  // 🟢 JANGAN SAMPAI HILANG
+const app = express();
 
-// 🟢 FIX CORS (tidak mengganggu upload, gambar, atau database)
 app.use(
   cors({
     origin: [
@@ -32,7 +32,6 @@ app.use(
 
 app.use(express.json());
 
-// 🟢 Tambahan CORS yang aman (TANPA wildcard!)
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Credentials", "true");
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -40,12 +39,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// 🟢 ROUTES
+// ROUTES
 app.use("/api/games", gameRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/users", userRoutes);
 
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 

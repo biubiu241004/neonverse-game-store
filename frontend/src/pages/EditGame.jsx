@@ -11,14 +11,13 @@ export default function EditGame() {
     description: "",
     price: "",
     stock: "",
-    rating: 0, // default
+    rating: 0,
     image: "",
   });
 
   const [preview, setPreview] = useState("");
   const [uploading, setUploading] = useState(false);
 
-  // Ambil detail game untuk form edit
   useEffect(() => {
     const loadGame = async () => {
       try {
@@ -104,7 +103,6 @@ export default function EditGame() {
           </div>
         ))}
 
-        {/* Upload Gambar */}
         <div className="mb-4">
           <label className="text-sm">Gambar</label>
           <input
@@ -117,7 +115,6 @@ export default function EditGame() {
           {uploading && <p className="text-yellow-400 mt-2">Uploading...</p>}
         </div>
 
-        {/* Preview */}
         {preview && (
           <img
             src={preview}

@@ -4,6 +4,7 @@ import protect from "../middleware/authMiddleware.js";
 import Order from "../models/Order.js";
 import Review from "../models/Review.js";
 import { checkAdminOrder } from "../middleware/checkAdminOrder.js";
+import { receiveOrder } from "../controllers/orderController.js";
 
 const router = express.Router();
 
@@ -107,27 +108,7 @@ router.put("/cancel-request/:id", protect, async (req, res) => {
 });
 
 // USER CONFIRM RECEIVED
-router.put("/receive/:id", protect, async (req, res) => {
-  try {
-    const order = await Order.findOne({
-      _id: req.params.id,
-      user: req.user._id,
-    });
-
-    if (!order)
-      return res.status(404).json({ message: "Order tidak ditemukan" });
-
-    if (order.status !== "completed")
-      return res.status(400).json({ message: "Admin belum menyelesaikan pesanan" });
-
-    order.status = "received";
-    await order.save();
-
-    res.json({ message: "Pesanan diterima" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+router.put("/receive/:id", protect, receiveOrder);
 
 // USER ADD REVIEW
 router.post("/review/:orderId/:gameId", protect, async (req, res) => {
@@ -154,6 +135,41 @@ router.post("/review/:orderId/:gameId", protect, async (req, res) => {
     });
 
     res.json({ message: "Review berhasil ditambahkan", review: rev });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.get("/admin/sales/summary", protect, async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Hanya admin" });
+    }
+
+    const orders = await Order.find({
+      status: "received",
+    })
+      .populate("items.game");
+
+    const result = {};
+
+    orders.forEach((order) => {
+      const date = new Date(order.createdAt)
+        .toISOString()
+        .split("T")[0];
+
+      order.items.forEach((item) => {
+        if (
+          item.game &&
+          item.game.createdBy.toString() === req.user._id.toString()
+        ) {
+          const income = item.price * item.quantity;
+          result[date] = (result[date] || 0) + income;
+        }
+      });
+    });
+
+    res.json(result);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

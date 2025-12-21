@@ -20,7 +20,7 @@ export default function Register() {
     try {
       await api.post("/api/auth/register", {
         ...form,
-        role: "user", // default role
+        role: "user",
       });
 
       setMessage("✅ Registration successful! Redirecting to login...");

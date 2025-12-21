@@ -13,7 +13,6 @@ const api = axios.create({
   },
 });
 
-// AUTOMATIC TOKEN INJECTOR
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {

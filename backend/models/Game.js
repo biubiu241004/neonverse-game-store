@@ -9,7 +9,6 @@ const gameSchema = new mongoose.Schema(
     sold: { type: Number, default: 0 },
     image: { type: String },
     description: { type: String },
-    // admin pemilik (createdBy) — required karena setiap game dibuat oleh admin
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

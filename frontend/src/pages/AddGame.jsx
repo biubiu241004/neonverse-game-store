@@ -21,7 +21,6 @@ export default function AddGame() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // 🟣 Upload Gambar Lokal
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -43,7 +42,6 @@ export default function AddGame() {
 
       setForm({ ...form, image: res.data.imageUrl });
 
-      // Preview langsung
       setPreview(URL.createObjectURL(file));
     } catch (err) {
       console.error(err);
@@ -53,7 +51,6 @@ export default function AddGame() {
     }
   };
 
-  // 🟣 Submit Game
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -85,7 +82,6 @@ export default function AddGame() {
           Tambah Game Baru
         </h1>
 
-        {/* Input Text */}
         {["title", "description", "price", "stock", "rating"].map((field) => (
           <div key={field} className="mb-4">
             <label className="text-sm">{field.toUpperCase()}</label>
@@ -99,7 +95,6 @@ export default function AddGame() {
           </div>
         ))}
 
-        {/* Upload Gambar */}
         <div className="mb-4">
           <label className="text-sm">Gambar</label>
           <input
@@ -112,7 +107,6 @@ export default function AddGame() {
           {uploading && <p className="text-yellow-400 mt-2">Uploading...</p>}
         </div>
 
-        {/* Preview */}
         {preview && (
           <img
             src={preview}

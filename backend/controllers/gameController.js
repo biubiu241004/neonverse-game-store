@@ -108,7 +108,6 @@ export const getReviews = async (req, res) => {
 // ADD review
 export const addReview = async (req, res) => {
   try {
-    // cek apakah user sudah menerima pesanan
     const hasBought = await Order.findOne({
       user: req.user._id,
       "items.game": req.params.id,

@@ -30,7 +30,6 @@ export default function Cart() {
     fetchCart();
   }, []);
 
-  // FIX CHECKOUT
   const handleCheckout = async () => {
     try {
       const token = localStorage.getItem("token");

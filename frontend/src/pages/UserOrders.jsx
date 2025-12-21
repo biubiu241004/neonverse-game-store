@@ -202,9 +202,6 @@ export default function UserOrders() {
         </div>
       )}
 
-      {/* =========================== */}
-      {/* MODAL DETAIL */}
-      {/* =========================== */}
       <AnimatePresence>
         {selected && (
           <motion.div
@@ -264,9 +261,6 @@ export default function UserOrders() {
         )}
       </AnimatePresence>
 
-      {/* =========================== */}
-      {/* MODAL REVIEW */}
-      {/* =========================== */}
       <AnimatePresence>
         {showReviewModal && (
           <motion.div
@@ -342,10 +336,6 @@ export default function UserOrders() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* =========================== */}
-      {/* MODAL PEMBATALAN (DENGAN ERROR + SHAKE) */}
-      {/* =========================== */}
 
       <AnimatePresence>
         {showCancelModal && (

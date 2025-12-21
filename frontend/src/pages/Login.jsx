@@ -20,7 +20,6 @@ export default function Login() {
     try {
       const res = await api.post("/api/auth/login", form);
 
-      // ✅ Simpan token ke localStorage
       localStorage.setItem("token", res.data.token);
 
       setMessage("✅ Login successful! Redirecting...");

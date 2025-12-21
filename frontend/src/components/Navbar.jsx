@@ -24,12 +24,11 @@ export default function Navbar() {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    // Jika token tidak ada → langsung reset state
     if (!token) {
       setIsLoggedIn(false);
       setUsername("");
       setRole("");
-      return; // STOP di sini biar tidak decode token null
+      return;
     }
 
     try {
@@ -72,7 +71,6 @@ export default function Navbar() {
 
       {/* Menu kanan */}
       <div className="flex gap-8 text-lg font-orbitron items-center">
-        {/* ==== HOME SELALU ADA UNTUK SEMUA ROLE ==== */}
         <motion.div whileHover={{ scale: 1.1 }}>
           <Link
             to="/"
@@ -86,7 +84,6 @@ export default function Navbar() {
           </Link>
         </motion.div>
 
-        {/* ==== STORE SELALU ADA UNTUK SEMUA ROLE ==== */}
         <motion.div whileHover={{ scale: 1.1 }}>
           <Link
             to="/store"
@@ -100,9 +97,6 @@ export default function Navbar() {
           </Link>
         </motion.div>
 
-        {/* =========================
-       USER MENU ONLY
-     ========================= */}
         {isLoggedIn && role === "user" && (
           <>
             <motion.div whileHover={{ scale: 1.1 }}>
@@ -133,9 +127,6 @@ export default function Navbar() {
           </>
         )}
 
-        {/* =========================
-       ADMIN MENU ONLY
-     ========================= */}
         {isLoggedIn && role === "admin" && (
           <>
             <motion.div whileHover={{ scale: 1.1 }}>
@@ -153,9 +144,6 @@ export default function Navbar() {
           </>
         )}
 
-        {/* =========================
-       GUEST MENU
-     ========================= */}
         {!isLoggedIn && (
           <>
             <motion.div whileHover={{ scale: 1.1 }}>
@@ -186,9 +174,6 @@ export default function Navbar() {
           </>
         )}
 
-        {/* =========================
-        LOGGED IN: SHOW NAME + LOGOUT
-        ========================= */}
         {isLoggedIn && (
           <>
             <span className="text-neonGreen font-semibold">👋 {username}</span>

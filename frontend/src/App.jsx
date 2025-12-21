@@ -12,6 +12,7 @@ import UserOrders from "./pages/UserOrders";
 import AddGame from "./pages/AddGame";
 import GameDetail from "./pages/GameDetail";
 import EditGame from "./pages/EditGame";
+import AdminBalance from "./pages/AdminBalance";
 
 export default function App() {
   const location = useLocation();
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="/admin/orders" element={<AdminOrders />} />
             <Route path="/admin/games/add" element={<AddGame />} />
             <Route path="/admin/games/edit/:id" element={<EditGame />} />
+            <Route path="/admin/balance" element={<AdminBalance />} />
             
             {/* User Orders */}
             <Route path="/orders" element={<UserOrders />} />

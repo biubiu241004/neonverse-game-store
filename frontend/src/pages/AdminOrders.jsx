@@ -2,9 +2,6 @@ import { useEffect, useState } from "react";
 import { getAdminOrders, updateOrderStatus } from "../services/orderService";
 import { motion, AnimatePresence } from "framer-motion";
 
-/* ============================= */
-/*          TOAST                */
-/* ============================= */
 const Toast = ({ message, type, onClose }) => (
   <motion.div
     initial={{ opacity: 0, y: -20 }}
@@ -21,10 +18,6 @@ const Toast = ({ message, type, onClose }) => (
   </motion.div>
 );
 
-/* ============================= */
-/*        MAIN COMPONENT         */
-/* ============================= */
-
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
   const [filtered, setFiltered] = useState([]);
@@ -35,7 +28,6 @@ const AdminOrders = () => {
 
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  // modal cancel admin
   const [cancelModal, setCancelModal] = useState(false);
   const [cancelOrderId, setCancelOrderId] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
@@ -55,9 +47,6 @@ const AdminOrders = () => {
     cancel_request: "Menunggu Pembatalan",
   };
 
-  /* ============================= */
-  /*          LOAD ORDERS         */
-  /* ============================= */
   useEffect(() => {
     loadOrders();
   }, []);
@@ -66,7 +55,6 @@ const AdminOrders = () => {
     try {
       const res = await getAdminOrders();
 
-      // hanya aktif → pending + processing + cancel_request
       const active = res.data.filter(
         (o) =>
           o.status === "pending" ||
@@ -82,9 +70,6 @@ const AdminOrders = () => {
     setLoading(false);
   };
 
-  /* ============================= */
-  /*          FILTERING           */
-  /* ============================= */
   useEffect(() => {
     let data = [...orders];
 
@@ -106,9 +91,6 @@ const AdminOrders = () => {
     setFiltered(data);
   }, [orders, filterStatus, search]);
 
-  /* ============================= */
-  /*      UPDATE STATUS NORMAL    */
-  /* ============================= */
   const handleStatusChange = async (id, newStatus) => {
     try {
       await updateOrderStatus(id, newStatus);
@@ -119,13 +101,9 @@ const AdminOrders = () => {
     }
   };
 
-  /* ============================= */
-  /*         RENDER PAGE          */
-  /* ============================= */
   return (
     <div className="text-white">
 
-      {/* Toast */}
       <AnimatePresence>
         {toast && (
           <Toast
@@ -140,7 +118,6 @@ const AdminOrders = () => {
         📦 Order Aktif
       </h1>
 
-      {/* Filter */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <select
           value={filterStatus}
@@ -162,7 +139,6 @@ const AdminOrders = () => {
         />
       </div>
 
-      {/* List orders */}
       {loading ? (
         <Loading />
       ) : filtered.length === 0 ? (
@@ -191,7 +167,6 @@ const AdminOrders = () => {
         </div>
       )}
 
-      {/* Modal pembatalan admin */}
       <AnimatePresence>
         {cancelModal && (
           <CancelModal
@@ -214,7 +189,6 @@ const AdminOrders = () => {
         )}
       </AnimatePresence>
 
-      {/* Modal detail */}
       <AnimatePresence>
         {selectedOrder && (
           <OrderDetailModal
@@ -227,10 +201,6 @@ const AdminOrders = () => {
     </div>
   );
 };
-
-/* ============================= */
-/*        REUSABLE COMPONENTS    */
-/* ============================= */
 
 const Loading = () => (
   <p className="text-center text-gray-400 mt-10">Memuat...</p>
@@ -271,7 +241,6 @@ const OrderCard = ({
       </span>
     </p>
 
-    {/* ACTIONS */}
     {order.status === "pending" && (
       <>
         <button
@@ -332,10 +301,6 @@ const OrderCard = ({
   </motion.div>
 );
 
-/* ============================= */
-/*       DETAIL MODAL           */
-/* ============================= */
-
 const OrderDetailModal = ({ order, statuses, onClose }) => (
   <motion.div
     initial={{ opacity: 0 }}
@@ -382,10 +347,6 @@ const OrderDetailModal = ({ order, statuses, onClose }) => (
     </motion.div>
   </motion.div>
 );
-
-/* ============================= */
-/*       CANCEL MODAL           */
-/* ============================= */
 
 const CancelModal = ({
   show,

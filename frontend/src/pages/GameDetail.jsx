@@ -14,7 +14,6 @@ export default function GameDetail() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // review form
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -68,7 +67,7 @@ export default function GameDetail() {
       return;
     }
     try {
-      await addToCart(id, 1); // implementasi sesuai cartService kamu
+      await addToCart(id, 1);
       setToast({ type: "success", msg: "Berhasil ditambahkan ke cart" });
     } catch (err) {
       console.error(err);
@@ -89,7 +88,6 @@ export default function GameDetail() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setToast({ type: "success", msg: "Checkout berhasil" });
-      // optionally navigate to orders or cart
       navigate("/orders");
     } catch (err) {
       console.error(err);
@@ -121,10 +119,8 @@ export default function GameDetail() {
       setComment("");
       setRating(5);
       setToast({ type: "success", msg: "Terima kasih, review terkirim" });
-      // reload reviews & update average rating
       const { data: revs } = await api.get(`/api/games/${id}/reviews`);
       setReviews(revs);
-      // refresh game (to update rating/sold etc)
       const { data: updatedGame } = await api.get(`/api/games/${id}`);
       setGame(updatedGame);
     } catch (err) {
@@ -171,7 +167,6 @@ export default function GameDetail() {
       </AnimatePresence>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* LEFT: image */}
         <div className="col-span-1">
           <img
             src={game.image}
@@ -183,7 +178,6 @@ export default function GameDetail() {
           />
         </div>
 
-        {/* MIDDLE: info */}
         <div className="col-span-2">
           <h1 className="text-3xl font-bold text-neonPink">{game.title}</h1>
           <p className="text-sm text-gray-300 mt-1">
@@ -232,7 +226,6 @@ export default function GameDetail() {
             )}
           </div>
 
-          {/* Description */}
           <div className="mt-6 bg-[#0f0f14] p-4 rounded-lg border border-neonPurple text-gray-200">
             <h3 className="font-bold mb-2">Deskripsi</h3>
             <p className="text-sm">
@@ -240,11 +233,9 @@ export default function GameDetail() {
             </p>
           </div>
 
-          {/* Reviews */}
           <div className="mt-6">
             <h3 className="text-xl font-bold mb-2">Ulasan</h3>
 
-            {/* Add review form */}
             {canReview ? (
               <div className="bg-[#0f0f14] p-4 rounded-lg border border-neonPurple">
                 <div className="flex items-center gap-3">
@@ -295,7 +286,6 @@ export default function GameDetail() {
               </p>
             )}
 
-            {/* Reviews list */}
             <div className="mt-4 space-y-3">
               {reviews.length === 0 ? (
                 <p className="text-gray-400">Belum ada review.</p>
@@ -325,7 +315,6 @@ export default function GameDetail() {
         </div>
       </div>
 
-      {/* Related / recommended */}
       <div className="mt-10">
         <h3 className="text-xl font-bold text-neonPink mb-4">
           Rekomendasi untuk kamu

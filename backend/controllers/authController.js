@@ -1,7 +1,7 @@
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 
-// 🧩 Ubah generateToken biar menyertakan role & username
+// Ubah generateToken biar menyertakan role & username
 const generateToken = (user) => {
   return jwt.sign(
     {
@@ -14,7 +14,7 @@ const generateToken = (user) => {
   );
 };
 
-// ✅ Register user baru
+// Register user baru
 export const registerUser = async (req, res) => {
   const { username, email, password, role } = req.body;
 
@@ -27,7 +27,7 @@ export const registerUser = async (req, res) => {
       username,
       email,
       password,
-      role: role || "user", // default user kalau tidak dikirim
+      role: role || "user",
     });
 
     res.status(201).json({
@@ -42,7 +42,7 @@ export const registerUser = async (req, res) => {
   }
 };
 
-// ✅ Login user
+// Login user
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 

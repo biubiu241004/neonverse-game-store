@@ -22,18 +22,16 @@ const orderSchema = new mongoose.Schema({
     enum: [
       "pending",
       "processing",
-      "completed", // admin selesai
-      "received", // user terima (BARU)
+      "completed",
+      "received",
       "cancel_request",
       "cancelled",
     ],
     default: "pending",
   },
 
-  // Alasan pembatalan dari user
   cancelReasonUser: { type: String, default: "" },
 
-  // Alasan pembatalan dari admin
   cancelReasonAdmin: { type: String, default: "" },
 
   createdAt: { type: Date, default: Date.now },
