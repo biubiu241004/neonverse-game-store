@@ -30,6 +30,21 @@ const orderSchema = new mongoose.Schema({
     default: "pending",
   },
 
+  payment: {
+    method: {
+      type: String,
+      enum: ["balance", "bank", "ewallet"],
+      required: true,
+    },
+    provider: String, // BCA / BRI / DANA / OVO
+    accountNumber: String, // rekening / no HP
+    status: {
+      type: String,
+      enum: ["pending", "paid"],
+      default: "pending",
+    },
+  },
+
   cancelReasonUser: { type: String, default: "" },
 
   cancelReasonAdmin: { type: String, default: "" },

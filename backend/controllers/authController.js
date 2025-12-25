@@ -48,7 +48,15 @@ export const loginUser = async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
+
     if (user && (await user.matchPassword(password))) {
+      // 🔒 CEK AKUN DIBANNED (INI NOMOR 2)
+      if (user.isBanned) {
+        return res.status(403).json({
+          message: "Akun kamu diblokir oleh sistem",
+        });
+      }
+
       res.json({
         _id: user._id,
         username: user.username,

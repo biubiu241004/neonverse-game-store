@@ -6,6 +6,9 @@ import AdminHistory from "./AdminHistory";
 import AdminBalance from "./AdminBalance";
 import { getSalesSummary } from "../services/orderService";
 import SalesChart from "../components/SalesChart";
+import BalanceHistory from "../components/BalanceHistory";
+import WithdrawForm from "../components/WithdrawForm";
+import WithdrawHistory from "../components/WithdrawHistory";
 
 export default function AdminDashboard() {
   const [tab, setTab] = useState("games");
@@ -33,12 +36,10 @@ export default function AdminDashboard() {
       setChartLoading(true);
       const res = await getSalesSummary();
 
-      const formatted = Object.entries(res.data).map(
-        ([date, total]) => ({
-          date,
-          total,
-        })
-      );
+      const formatted = Object.entries(res.data).map(([date, total]) => ({
+        date,
+        total,
+      }));
 
       setChartData(formatted);
     } catch (err) {
@@ -102,12 +103,15 @@ export default function AdminDashboard() {
           {chartLoading ? (
             <div className="h-64 bg-[#141420] animate-pulse rounded-xl" />
           ) : chartData.length === 0 ? (
-            <p className="text-gray-400">
-              Belum ada data penjualan.
-            </p>
+            <p className="text-gray-400">Belum ada data penjualan.</p>
           ) : (
             <SalesChart data={chartData} />
           )}
+
+          {/* RIWAYAT SALDO */}
+          <BalanceHistory />
+          <WithdrawForm onSuccess={loadChart} />
+          <WithdrawHistory />
         </div>
       )}
     </div>

@@ -71,31 +71,35 @@ export default function Navbar() {
 
       {/* Menu kanan */}
       <div className="flex gap-8 text-lg font-orbitron items-center">
-        <motion.div whileHover={{ scale: 1.1 }}>
-          <Link
-            to="/"
-            className={`${
-              location.pathname === "/"
-                ? "text-neonGreen"
-                : "text-white hover:text-neonGreen"
-            }`}
-          >
-            Home
-          </Link>
-        </motion.div>
+        {role !== "superadmin" && (
+          <motion.div whileHover={{ scale: 1.1 }}>
+            <Link
+              to="/"
+              className={`${
+                location.pathname === "/"
+                  ? "text-neonGreen"
+                  : "text-white hover:text-neonGreen"
+              }`}
+            >
+              Home
+            </Link>
+          </motion.div>
+        )}
 
-        <motion.div whileHover={{ scale: 1.1 }}>
-          <Link
-            to="/store"
-            className={`${
-              location.pathname === "/store"
-                ? "text-neonPink"
-                : "text-white hover:text-neonPink"
-            }`}
-          >
-            Store
-          </Link>
-        </motion.div>
+        {role !== "superadmin" && (
+          <motion.div whileHover={{ scale: 1.1 }}>
+            <Link
+              to="/store"
+              className={`${
+                location.pathname === "/store"
+                  ? "text-neonPink"
+                  : "text-white hover:text-neonPink"
+              }`}
+            >
+              Store
+            </Link>
+          </motion.div>
+        )}
 
         {isLoggedIn && role === "user" && (
           <>
@@ -124,6 +128,18 @@ export default function Navbar() {
                 Orders
               </Link>
             </motion.div>
+            <motion.div whileHover={{ scale: 1.1 }}>
+              <Link
+                to="/balance"
+                className={`${
+                  location.pathname === "/balance"
+                    ? "text-neonGreen"
+                    : "text-white hover:text-neonGreen"
+                }`}
+              >
+                💰 Saldo
+              </Link>
+            </motion.div>
           </>
         )}
 
@@ -139,6 +155,36 @@ export default function Navbar() {
                 }`}
               >
                 <LayoutDashboard size={18} /> Dashboard
+              </Link>
+            </motion.div>
+          </>
+        )}
+
+        {isLoggedIn && role === "superadmin" && (
+          <>
+            <motion.div whileHover={{ scale: 1.1 }}>
+              <Link
+                to="/superadmin/users"
+                className={`${
+                  location.pathname === "/superadmin/users"
+                    ? "text-red-400"
+                    : "text-white hover:text-red-400"
+                }`}
+              >
+                👥 Users
+              </Link>
+            </motion.div>
+
+            <motion.div whileHover={{ scale: 1.1 }}>
+              <Link
+                to="/superadmin/withdraws"
+                className={`${
+                  location.pathname === "/superadmin/withdraws"
+                    ? "text-yellow-400"
+                    : "text-white hover:text-yellow-400"
+                }`}
+              >
+                🏧 Withdraw
               </Link>
             </motion.div>
           </>

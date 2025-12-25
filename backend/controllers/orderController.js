@@ -1,6 +1,8 @@
 import Order from "../models/Order.js";
 import Game from "../models/Game.js";
 import User from "../models/User.js";
+import BalanceHistory from "../models/BalanceHistory.js";
+import Cart from "../models/Cart.js";
 
 export const checkout = async (req, res) => {
   console.log("Checkout request body:", req.body);
@@ -8,25 +10,26 @@ export const checkout = async (req, res) => {
 
   try {
     const userId = req.user.id;
-    const { items } = req.body;
+    const { items, payment } = req.body;
+
+    if (!payment || !payment.method) {
+      return res.status(400).json({ message: "Metode pembayaran wajib" });
+    }
 
     let totalAmount = 0;
     const orderItems = [];
 
-    for (let item of items) {
+    for (const item of items) {
       const game = await Game.findById(item.gameId);
-
-      if (!game) {
-        return res.status(404).json({ message: "Game not found" });
-      }
+      if (!game)
+        return res.status(404).json({ message: "Game tidak ditemukan" });
 
       if (game.stock < item.quantity) {
-        return res
-          .status(400)
-          .json({ message: `${game.title} is out of stock` });
+        return res.status(400).json({
+          message: `${game.title} stok tidak cukup`,
+        });
       }
 
-      // kurangi stok
       game.stock -= item.quantity;
       await game.save();
 
@@ -39,18 +42,48 @@ export const checkout = async (req, res) => {
       });
     }
 
+    // =========================
+    // PAYMENT LOGIC
+    // =========================
+    if (payment.method === "balance") {
+      const user = await User.findById(userId);
+
+      if (user.balance < totalAmount) {
+        return res.status(400).json({ message: "Saldo tidak cukup" });
+      }
+
+      user.balance -= totalAmount;
+      await user.save();
+    }
+
+    if (["bank", "ewallet"].includes(payment.method)) {
+      if (!payment.provider || !payment.accountNumber) {
+        return res.status(400).json({
+          message: "Data pembayaran belum lengkap",
+        });
+      }
+    }
+
     const order = await Order.create({
       user: userId,
       items: orderItems,
       totalAmount,
+      payment: {
+        method: payment.method,
+        provider: payment.provider,
+        accountNumber: payment.accountNumber,
+        status: payment.method === "balance" ? "paid" : "pending",
+      },
     });
 
+    await Cart.findOneAndUpdate({ user: userId }, { $set: { items: [] } });
+
     res.status(201).json({
-      message: "Checkout successful",
+      message: "Order berhasil dibuat",
       order,
     });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -81,9 +114,17 @@ export const receiveOrder = async (req, res) => {
 
       await User.findByIdAndUpdate(
         game.createdBy,
-        { $inc: { balance: income } }, // ⬅️ KUNCI
+        { $inc: { balance: income } },
         { new: true }
       );
+
+      await BalanceHistory.create({
+        admin: game.createdBy,
+        order: order._id,
+        game: game._id,
+        amount: income,
+        type: "credit",
+      });
     }
 
     order.status = "received";

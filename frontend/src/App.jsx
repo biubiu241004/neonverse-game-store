@@ -13,13 +13,16 @@ import AddGame from "./pages/AddGame";
 import GameDetail from "./pages/GameDetail";
 import EditGame from "./pages/EditGame";
 import AdminBalance from "./pages/AdminBalance";
+import SuperAdminWithdraw from "./pages/SuperAdminWithdraw";
+import SuperAdminUsers from "./pages/SuperAdminUsers";
+import UserBalance from "./pages/UserBalance";
+import Checkout from "./pages/Checkout";
 
 export default function App() {
   const location = useLocation();
 
   return (
     <div className="min-h-screen pt-24 bg-white dark:bg-[#0a0a10] text-black dark:text-white transition-colors duration-300">
-
       <Navbar />
 
       <AnimatePresence mode="wait">
@@ -44,9 +47,15 @@ export default function App() {
             <Route path="/admin/games/add" element={<AddGame />} />
             <Route path="/admin/games/edit/:id" element={<EditGame />} />
             <Route path="/admin/balance" element={<AdminBalance />} />
-            
+
+            {/* Super Admin */}
+            <Route path="/superadmin/withdraws"element={<SuperAdminWithdraw />} />
+            <Route path="/superadmin/users" element={<SuperAdminUsers />} />
+
             {/* User Orders */}
             <Route path="/orders" element={<UserOrders />} />
+            <Route path="/balance" element={<UserBalance />} />
+            <Route path="/checkout" element={<Checkout />} />
           </Routes>
         </motion.div>
       </AnimatePresence>
